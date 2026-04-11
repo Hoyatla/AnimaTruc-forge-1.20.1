@@ -1,0 +1,10 @@
+v1.0.0-proprietary.0 (AnimaTruc)
+- Remove inherited legacy source modules from this repository.
+- Keep only clean-room runtime packages under `io.hoyatla.animatruc.*`.
+- Add proprietary runtime module `animatruc-proprietary-core`:
+  - keyframe channels
+  - deterministic mixer (weighted + additive)
+  - adaptive update scheduler
+  - per-instance animator runtime
+- Add clean Forge integration module `animatruc-forge` for Minecraft 1.20.1.
+- Replace repository license with strict "All Rights Reserved".

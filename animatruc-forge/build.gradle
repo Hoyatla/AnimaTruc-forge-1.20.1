@@ -1,0 +1,114 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+}
+
+base {
+    archivesName = "animatruc-${minecraft_version}"
+}
+
+evaluationDependsOn(":animatruc-proprietary-core")
+
+def proprietaryCoreSourceSets = project(":animatruc-proprietary-core")
+        .extensions
+        .getByType(org.gradle.api.tasks.SourceSetContainer)
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+minecraft {
+    mappings channel: 'parchment', version: "${parchment_version}-${minecraft_version}"
+    copyIdeResources = true
+
+    runs {
+        client {
+            workingDirectory project.file('runs/client')
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                    source proprietaryCoreSourceSets.main
+                }
+            }
+        }
+        server {
+            workingDirectory project.file('runs/server')
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                    source proprietaryCoreSourceSets.main
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    implementation project(":animatruc-proprietary-core")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+def expandedProperties = [
+        mod_id                 : mod_id,
+        version                : version,
+        mod_display_name       : mod_display_name,
+        mod_authors            : mod_authors,
+        mod_license            : mod_license,
+        mod_description        : mod_description,
+        forge_loader_range     : forge_loader_range,
+        forge_version_range    : forge_version_range,
+        minecraft_version_range: minecraft_version_range
+]
+
+processResources {
+    inputs.properties expandedProperties
+    filesMatching(['META-INF/mods.toml']) {
+        expand expandedProperties
+    }
+}
+
+jar {
+    from(proprietaryCoreSourceSets.main.output)
+    from(rootProject.file("LICENSE"))
+    manifest {
+        attributes(
+                "Implementation-Title": mod_display_name + " Forge",
+                "Implementation-Version": version,
+                "Implementation-Vendor": mod_authors
+        )
+    }
+}
+
+sourcesJar {
+    from proprietaryCoreSourceSets.main.allSource
+    from rootProject.file("LICENSE")
+}
+
+javadocJar {
+    from rootProject.file("LICENSE")
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId base.archivesName.get()
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
