@@ -106,6 +106,24 @@
         return !(normalized === "once" || normalized === "hold" || normalized === "hold_on_last_frame");
     }
 
+    function sanitizeBaseFileName(value) {
+        let name = String(value || "animatruc_project").trim();
+
+        if (name.length === 0) {
+            return "animatruc_project";
+        }
+
+        name = name
+            .replace(/\.animatrucpack\.json$/i, "")
+            .replace(/\.animatrucpack$/i, "")
+            .replace(/\.animatruc\.json$/i, "")
+            .replace(/\.animatruc$/i, "")
+            .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
+            .replace(/\s+/g, "_");
+
+        return name.length > 0 ? name : "animatruc_project";
+    }
+
     function extractKeyframeVec3(keyframe, channel) {
         const fallback = channel === "scale" ? [1, 1, 1] : [0, 0, 0];
         const points = keyframe && Array.isArray(keyframe.data_points) ? keyframe.data_points : [];
@@ -278,7 +296,7 @@
 
         Group.all.forEach(function (group) {
             if (names[group.name]) {
-                warnings.push("Duplicate bone name: " + group.name);
+                warnings.push("Nom d'os dupliqué : " + group.name);
             }
 
             names[group.name] = true;
@@ -286,11 +304,11 @@
         });
 
         if (Group.all.length === 0) {
-            warnings.push("No bones found. Create at least one Group for AnimaTruc skeleton.");
+            warnings.push("Aucun os trouvé. Crée au moins un groupe pour le squelette AnimaTruc.");
         }
 
         if (!Cube || !Array.isArray(Cube.all) || Cube.all.length === 0) {
-            warnings.push("No cubes found. Model geometry section will be empty.");
+            warnings.push("Aucun cube trouvé. La section géométrie du modèle sera vide.");
         }
 
         Animation.all.forEach(function (animation) {
@@ -304,14 +322,14 @@
                 }
 
                 if (!groupsByUuid[animatorId] && !animator.name) {
-                    warnings.push("Animation '" + animation.name + "' has unresolved bone animator: " + animatorId);
+                    warnings.push("Animation '" + animation.name + "' : animateur d'os non résolu : " + animatorId);
                 }
 
                 const keyframes = Array.isArray(animator.keyframes) ? animator.keyframes : [];
                 keyframes.forEach(function (keyframe) {
                     if (!normalizeChannel(keyframe.channel)) {
                         warnings.push(
-                            "Animation '" + animation.name + "' uses unsupported channel '" + keyframe.channel + "'"
+                            "Animation '" + animation.name + "' utilise un canal non supporté : '" + keyframe.channel + "'"
                         );
                     }
                 });
@@ -325,12 +343,12 @@
         const warnings = projectValidationWarnings();
 
         if (warnings.length === 0) {
-            Blockbench.showQuickMessage("AnimaTruc validation OK", 2500);
+            Blockbench.showQuickMessage("Validation AnimaTruc OK", 2500);
             return;
         }
 
         Blockbench.showMessageBox({
-            title: "AnimaTruc Validation",
+            title: "Validation AnimaTruc",
             message: warnings.join("\n")
         });
     }
@@ -338,35 +356,35 @@
     function showPackPreview() {
         const pack = buildPack();
         const preview = [
-            "Project: " + (pack.meta.projectName || "unnamed"),
-            "Bones: " + pack.skeleton.bones.length,
-            "Cubes: " + pack.model.cubes.length,
-            "Clips: " + pack.clips.length
+            "Projet : " + (pack.meta.projectName || "sans_nom"),
+            "Os : " + pack.skeleton.bones.length,
+            "Cubes : " + pack.model.cubes.length,
+            "Animations : " + pack.clips.length
         ];
 
         if (pack.clips.length > 0) {
-            preview.push("Clip names: " + pack.clips.map(function (clip) { return clip.name; }).join(", "));
+            preview.push("Noms des animations : " + pack.clips.map(function (clip) { return clip.name; }).join(", "));
         }
 
         Blockbench.showMessageBox({
-            title: "AnimaTruc Pack Preview",
+            title: "Aperçu du pack AnimaTruc",
             message: preview.join("\n")
         });
     }
 
     function exportPack() {
         if (!Project) {
-            Blockbench.showQuickMessage("No active Blockbench project.", 3000);
+            Blockbench.showQuickMessage("Aucun projet Blockbench actif.", 3000);
             return;
         }
 
         const pack = buildPack();
-        const suggestedName = (Project.name || "animatruc_project") + ".animatrucpack";
+        const suggestedName = sanitizeBaseFileName(Project.name || "animatruc_project");
 
         Blockbench.export({
             resource_id: "animatruc_pack",
-            type: "AnimaTruc Runtime Pack",
-            extensions: ["animatrucpack.json"],
+            type: "Pack Runtime AnimaTruc",
+            extensions: ["animatrucpack"],
             name: suggestedName,
             content: JSON.stringify(pack, null, 2)
         });
@@ -388,7 +406,7 @@
     function openBbmodelForEditing() {
         triggerNativeAction(
             "open_model",
-            "Native 'open model' action not found. Use File -> Open Model and select a .bbmodel."
+            "Action native 'ouvrir un modèle' introuvable. Utilise Fichier -> Ouvrir un modèle puis choisis un .bbmodel."
         );
     }
 
@@ -399,49 +417,49 @@
 
         triggerNativeAction(
             "open_model",
-            "Native 'import glTF' action not found. Use File -> Import -> glTF or open the file manually."
+            "Action native 'importer glTF' introuvable. Utilise Fichier -> Importer -> glTF ou ouvre le fichier manuellement."
         );
     }
 
     Plugin.register(PLUGIN_ID, {
-        title: "AnimaTruc Exporter",
+        title: "AnimaTruc Exportateur",
         author: "Hoyatla",
         icon: "icon-animation",
-        description: "Open source models, preview and export unified AnimaTruc runtime packs (model + animations).",
+        description: "Ouvre des modèles source, prévisualise et exporte des packs runtime AnimaTruc unifiés (modèle + animations).",
         version: "2.0.0",
         variant: "both",
         onload: function () {
             openBbmodelAction = new Action("animatruc_open_bbmodel", {
-                name: "Open .bbmodel For AnimaTruc",
-                description: "Open Blockbench model for editing before AnimaTruc export",
+                name: "Ouvrir .bbmodel pour AnimaTruc",
+                description: "Ouvre un modèle Blockbench pour édition avant export AnimaTruc",
                 icon: "folder_open",
                 click: openBbmodelForEditing
             });
 
             importGltfAction = new Action("animatruc_import_gltf", {
-                name: "Import .gltf For AnimaTruc",
-                description: "Import glTF model for editing before AnimaTruc export",
+                name: "Importer .gltf pour AnimaTruc",
+                description: "Importe un modèle glTF pour édition avant export AnimaTruc",
                 icon: "insert_drive_file",
                 click: importGltfForEditing
             });
 
             validateAction = new Action("animatruc_validate_project", {
-                name: "Validate For AnimaTruc",
-                description: "Validate skeleton, channels and geometry before export",
+                name: "Valider pour AnimaTruc",
+                description: "Valide squelette, canaux et géométrie avant export",
                 icon: "check_circle",
                 click: showValidationResult
             });
 
             previewAction = new Action("animatruc_preview_pack", {
-                name: "Preview AnimaTruc Pack",
-                description: "Preview pack counts and clip names",
+                name: "Prévisualiser le pack AnimaTruc",
+                description: "Affiche les compteurs du pack et les noms des animations",
                 icon: "visibility",
                 click: showPackPreview
             });
 
             exportAction = new Action("animatruc_export_pack", {
-                name: "Export AnimaTruc Runtime Pack",
-                description: "Export model + animations to .animatrucpack.json",
+                name: "Exporter le pack runtime AnimaTruc",
+                description: "Exporte modèle + animations vers .animatrucpack",
                 icon: "fa-file-export",
                 click: exportPack
             });

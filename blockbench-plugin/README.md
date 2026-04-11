@@ -1,34 +1,34 @@
-# Blockbench Plugin: AnimaTruc Exporter
+# Plugin Blockbench : AnimaTruc Exportateur
 
-## File
+## Fichier
 - `animatruc_exporter.js`
 
-## Install
-1. Open Blockbench.
-2. Go to `File -> Plugins -> Load Plugin from File...`.
-3. Select `blockbench-plugin/animatruc_exporter.js`.
+## Installation
+1. Ouvre Blockbench.
+2. Va dans `Fichier -> Plugins -> Charger un plugin depuis un fichier...`.
+3. Sélectionne `blockbench-plugin/animatruc_exporter.js`.
 
-## Actions Added
-- `File -> Open .bbmodel For AnimaTruc`
-- `File -> Import -> Import .gltf For AnimaTruc`
-- `Animation -> Validate For AnimaTruc`
-- `Animation -> Preview AnimaTruc Pack`
-- `File -> Export -> Export AnimaTruc Runtime Pack`
+## Actions ajoutées
+- `Fichier -> Ouvrir .bbmodel pour AnimaTruc`
+- `Fichier -> Importer -> Importer .gltf pour AnimaTruc`
+- `Animation -> Valider pour AnimaTruc`
+- `Animation -> Prévisualiser le pack AnimaTruc`
+- `Fichier -> Exporter -> Exporter le pack runtime AnimaTruc`
 
-## Export Format
-- Extension: `.animatrucpack.json`
-- Contains:
-  - skeleton bones (name, parent, pivot, bind pose)
-  - model cubes (bone binding + bounds)
-  - animation clips
-  - per-bone tracks: translation / rotation / scale
-- Rotation is exported as quaternions for direct runtime use.
+## Format d'export
+- Extension : `.animatrucpack`
+- Contenu :
+  - os du squelette (nom, parent, pivot, bind pose)
+  - cubes du modèle (liaison os + bornes)
+  - animations
+  - pistes par os : translation / rotation / scale
+- La rotation est exportée en quaternions pour usage runtime direct.
 
-## Runtime Import (Java)
+## Import runtime (Java)
 ```java
-AnimationAssetPack pack = AnimationAssetImporters.importFromPath(Path.of("my_model.animatrucpack.json"));
+AnimationAssetPack pack = AnimationAssetImporters.importFromPath(Path.of("my_model.animatrucpack"));
 ```
 
 ## Notes
-- Recommended Java runtime for build: Java 17.
-- The plugin exports only channels supported by AnimaTruc (`translation`, `rotation`, `scale`).
+- Runtime Java recommandé pour le build : Java 17.
+- Le plugin exporte uniquement les canaux supportés par AnimaTruc (`translation`, `rotation`, `scale`).
