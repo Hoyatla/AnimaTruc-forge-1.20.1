@@ -1,3 +1,18 @@
+v1.0.0-proprietary.1 (AnimaTruc)
+- Add layered animation system with per-layer weighting and per-bone masks.
+- Add animation graph runtime:
+  - immutable graph definition builder
+  - state transitions with conditions and priorities
+  - cross-fade windows between active states
+- Add procedural modifier pipeline:
+  - look-at rotation modifier
+  - breathing micro-motion modifier
+  - two-bone IK modifier (planar XY)
+- Add runtime profiler for graph/mix/modifier/total frame timings.
+- Extend animator context to carry look targets and scalar parameters.
+- Extend math and transform primitives for procedural runtime use.
+- Add regression tests for graph transitions, layer masking, and modifiers.
+
 v1.0.0-proprietary.0 (AnimaTruc)
 - Remove inherited legacy source modules from this repository.
 - Keep only clean-room runtime packages under `io.hoyatla.animatruc.*`.

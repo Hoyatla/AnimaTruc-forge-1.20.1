@@ -7,6 +7,7 @@ import java.util.Objects;
  */
 public final class Quatf {
     public static final Quatf IDENTITY = new Quatf(0f, 0f, 0f, 1f);
+    private static final float DEG_TO_RAD = (float)Math.PI / 180f;
 
     private final float x;
     private final float y;
@@ -54,6 +55,23 @@ public final class Quatf {
                 this.w * other.z + this.x * other.y - this.y * other.x + this.z * other.w,
                 this.w * other.w - this.x * other.x - this.y * other.y - this.z * other.z
         );
+    }
+
+    public static Quatf fromAxisAngle(float axisX, float axisY, float axisZ, float angleDegrees) {
+        float radians = angleDegrees * DEG_TO_RAD;
+        float half = radians * 0.5f;
+        float sin = (float)Math.sin(half);
+        float cos = (float)Math.cos(half);
+
+        return new Quatf(axisX * sin, axisY * sin, axisZ * sin, cos).normalize();
+    }
+
+    public static Quatf fromEulerDegrees(float pitch, float yaw, float roll) {
+        Quatf qx = fromAxisAngle(1f, 0f, 0f, pitch);
+        Quatf qy = fromAxisAngle(0f, 1f, 0f, yaw);
+        Quatf qz = fromAxisAngle(0f, 0f, 1f, roll);
+
+        return qy.multiply(qx).multiply(qz).normalize();
     }
 
     public static Quatf nlerp(Quatf a, Quatf b, float alpha) {

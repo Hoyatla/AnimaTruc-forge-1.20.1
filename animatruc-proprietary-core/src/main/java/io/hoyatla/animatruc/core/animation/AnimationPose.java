@@ -31,4 +31,36 @@ public final class AnimationPose {
     public Map<String, Transform> asMap() {
         return this.bones;
     }
+
+    public MutablePose mutableCopy() {
+        return MutablePose.from(this);
+    }
+
+    public static final class MutablePose {
+        private final Map<String, Transform> bones;
+
+        private MutablePose(Map<String, Transform> bones) {
+            this.bones = bones;
+        }
+
+        public static MutablePose from(AnimationPose pose) {
+            return new MutablePose(new HashMap<>(pose.bones));
+        }
+
+        public Transform transform(String boneName) {
+            return this.bones.getOrDefault(boneName, Transform.IDENTITY);
+        }
+
+        public void setTransform(String boneName, Transform transform) {
+            this.bones.put(boneName, transform);
+        }
+
+        public Set<String> bones() {
+            return this.bones.keySet();
+        }
+
+        public AnimationPose toImmutable() {
+            return AnimationPose.of(this.bones);
+        }
+    }
 }

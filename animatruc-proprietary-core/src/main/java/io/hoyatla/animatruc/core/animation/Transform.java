@@ -25,12 +25,24 @@ public final class Transform {
         return this.translation;
     }
 
+    public Transform withTranslation(Vec3f translation) {
+        return new Transform(translation, this.rotation, this.scale);
+    }
+
     public Quatf rotation() {
         return this.rotation;
     }
 
+    public Transform withRotation(Quatf rotation) {
+        return new Transform(this.translation, rotation, this.scale);
+    }
+
     public Vec3f scale() {
         return this.scale;
+    }
+
+    public Transform withScale(Vec3f scale) {
+        return new Transform(this.translation, this.rotation, scale);
     }
 
     public static Transform blend(Transform a, Transform b, float alpha) {

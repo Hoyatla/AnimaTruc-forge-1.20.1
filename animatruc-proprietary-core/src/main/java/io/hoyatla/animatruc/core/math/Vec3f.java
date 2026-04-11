@@ -47,6 +47,40 @@ public final class Vec3f {
         return new Vec3f(this.x * other.x, this.y * other.y, this.z * other.z);
     }
 
+    public float dot(Vec3f other) {
+        return this.x * other.x + this.y * other.y + this.z * other.z;
+    }
+
+    public float lengthSquared() {
+        return this.dot(this);
+    }
+
+    public float length() {
+        return (float)Math.sqrt(lengthSquared());
+    }
+
+    public Vec3f normalize() {
+        float len = length();
+
+        if (len == 0f)
+            return ZERO;
+
+        return multiply(1f / len);
+    }
+
+    public Vec3f clampLength(float maxLength) {
+        if (maxLength <= 0f)
+            return ZERO;
+
+        float lengthSquared = lengthSquared();
+        float maxLengthSquared = maxLength * maxLength;
+
+        if (lengthSquared <= maxLengthSquared)
+            return this;
+
+        return normalize().multiply(maxLength);
+    }
+
     public static Vec3f lerp(Vec3f a, Vec3f b, float alpha) {
         float t = clamp01(alpha);
 
