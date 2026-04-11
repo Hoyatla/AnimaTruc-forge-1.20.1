@@ -12,14 +12,30 @@ AnimaTruc is a proprietary Minecraft animation runtime targeting Forge 1.20.1 wi
 - Animation graph runtime with state transitions and fades
 - Procedural modifiers (look-at, breathing, two-bone IK)
 - Built-in runtime profiling
-- Asset import pipeline for `.bbmodel`, `.gltf`, and `.animatruc.json`
+- Asset import pipeline for `.bbmodel`, `.gltf`, `.animatruc.json`, and `.animatrucpack.json`
+- Unified runtime pack format (`animatruc-pack`) with skeleton + model cubes + clips
 
 ## Blockbench Plugin
-- Location: `blockbench-plugin/animatruc.blockbench.js`
-- Installs two actions in Blockbench:
-  - `Export AnimaTruc Pack`
+- Location: `blockbench-plugin/animatruc_exporter.js`
+- Blockbench actions:
+  - `Open .bbmodel For AnimaTruc`
+  - `Import .gltf For AnimaTruc`
   - `Validate For AnimaTruc`
-- Produces `.animatruc.json` packs directly consumable by AnimaTruc importer.
+  - `Preview AnimaTruc Pack`
+  - `Export AnimaTruc Runtime Pack`
+- Produces `.animatrucpack.json` (model + animations) directly consumable by AnimaTruc importer.
+
+## Forge Loader + Example
+- Loader class:
+  - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/pack/AnimaTrucForgePackLoader.java`
+- Example bootstrap:
+  - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/example/AnimaTrucExampleBootstrap.java`
+- Example pack resource:
+  - `animatruc-forge/src/main/resources/assets/animatruc/animatrucpacks/example_humanoid.animatrucpack.json`
+
+## E2E Test
+- Plugin-exported pack fixture -> runtime import assertions:
+  - `animatruc-proprietary-core/src/test/java/io/hoyatla/animatruc/core/e2e/PluginExportRuntimeE2ETest.java`
 
 ## Build
 ```powershell

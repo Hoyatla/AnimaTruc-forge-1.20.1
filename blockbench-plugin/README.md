@@ -1,28 +1,32 @@
 # Blockbench Plugin: AnimaTruc Exporter
 
 ## File
-- `animatruc.blockbench.js`
+- `animatruc_exporter.js`
 
 ## Install
 1. Open Blockbench.
 2. Go to `File -> Plugins -> Load Plugin from File...`.
-3. Select `blockbench-plugin/animatruc.blockbench.js`.
+3. Select `blockbench-plugin/animatruc_exporter.js`.
 
 ## Actions Added
-- `File -> Export -> Export AnimaTruc Pack`
+- `File -> Open .bbmodel For AnimaTruc`
+- `File -> Import -> Import .gltf For AnimaTruc`
 - `Animation -> Validate For AnimaTruc`
+- `Animation -> Preview AnimaTruc Pack`
+- `File -> Export -> Export AnimaTruc Runtime Pack`
 
 ## Export Format
-- Extension: `.animatruc.json`
+- Extension: `.animatrucpack.json`
 - Contains:
   - skeleton bones (name, parent, pivot, bind pose)
+  - model cubes (bone binding + bounds)
   - animation clips
   - per-bone tracks: translation / rotation / scale
 - Rotation is exported as quaternions for direct runtime use.
 
 ## Runtime Import (Java)
 ```java
-AnimationAssetPack pack = AnimationAssetImporters.importFromPath(Path.of("my_model.animatruc.json"));
+AnimationAssetPack pack = AnimationAssetImporters.importFromPath(Path.of("my_model.animatrucpack.json"));
 ```
 
 ## Notes

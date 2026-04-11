@@ -26,15 +26,37 @@ public final class AnimationAssetImporters {
 
     public static AnimationAssetPack importFromPath(Path path, ModelImportOptions options) {
         Objects.requireNonNull(path, "path");
-        String fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
+        String fileName = path.getFileName().toString();
 
-        if (fileName.endsWith(".animatruc.json") || fileName.endsWith(".animatruc"))
-            return ANIMATRUC_JSON_IMPORTER.importFromPath(path, options);
+        return importFromString(fileName, readPath(path), options);
+    }
+
+    public static AnimationAssetPack importFromString(String sourceName, String payload) {
+        return importFromString(sourceName, payload, ModelImportOptions.DEFAULT);
+    }
+
+    public static AnimationAssetPack importFromString(String sourceName, String payload, ModelImportOptions options) {
+        Objects.requireNonNull(sourceName, "sourceName");
+        Objects.requireNonNull(payload, "payload");
+        String fileName = sourceName.toLowerCase(Locale.ROOT);
+
+        if (fileName.endsWith(".animatrucpack.json") || fileName.endsWith(".animatrucpack")
+                || fileName.endsWith(".animatruc.json") || fileName.endsWith(".animatruc"))
+            return ANIMATRUC_JSON_IMPORTER.importFromString(payload, options);
         if (fileName.endsWith(".bbmodel"))
-            return BBMODEL_IMPORTER.importFromPath(path, options);
+            return BBMODEL_IMPORTER.importFromString(payload, options);
         if (fileName.endsWith(".gltf"))
-            return GLTF_IMPORTER.importFromPath(path, options);
+            return GLTF_IMPORTER.importFromString(payload, options);
 
-        throw new ModelImportException("Unsupported model format for file: " + path);
+        throw new ModelImportException("Unsupported model format for source: " + sourceName);
+    }
+
+    private static String readPath(Path path) {
+        try {
+            return java.nio.file.Files.readString(path);
+        }
+        catch (java.io.IOException exception) {
+            throw new ModelImportException("Failed to read source file: " + path, exception);
+        }
     }
 }

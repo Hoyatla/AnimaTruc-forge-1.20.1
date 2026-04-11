@@ -1,0 +1,67 @@
+{
+  "format": "animatruc-pack",
+  "version": 2,
+  "meta": {
+    "source": "repository-example",
+    "projectName": "example_humanoid"
+  },
+  "skeleton": {
+    "bones": [
+      {
+        "name": "body",
+        "pivot": [0, 24, 0],
+        "bindPose": {
+          "translation": [0, 0, 0],
+          "rotation": [0, 0, 0, 1],
+          "scale": [1, 1, 1]
+        }
+      },
+      {
+        "name": "head",
+        "parent": "body",
+        "pivot": [0, 30, 0],
+        "bindPose": {
+          "translation": [0, 0, 0],
+          "rotation": [0, 0, 0, 1],
+          "scale": [1, 1, 1]
+        }
+      }
+    ]
+  },
+  "model": {
+    "cubes": [
+      {
+        "name": "body_cube",
+        "bone": "body",
+        "from": [-4, 12, -2],
+        "to": [4, 24, 2],
+        "inflate": 0,
+        "mirror": false
+      },
+      {
+        "name": "head_cube",
+        "bone": "head",
+        "from": [-4, 24, -4],
+        "to": [4, 32, 4],
+        "inflate": 0,
+        "mirror": false
+      }
+    ]
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "lengthTicks": 20,
+      "looping": true,
+      "tracks": {
+        "head": {
+          "rotation": [
+            { "tick": 0, "interpolation": "LINEAR", "value": [0, 0, 0, 1] },
+            { "tick": 10, "interpolation": "LINEAR", "value": [0, 0.1736482, 0, 0.9848078] },
+            { "tick": 20, "interpolation": "LINEAR", "value": [0, 0, 0, 1] }
+          ]
+        }
+      }
+    }
+  ]
+}

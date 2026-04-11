@@ -37,6 +37,18 @@ class AnimaTrucJsonImporterTest {
                       }
                     ]
                   },
+                  "model": {
+                    "cubes": [
+                      {
+                        "name": "body_cube",
+                        "bone": "body",
+                        "from": [-4, 12, -2],
+                        "to": [4, 24, 2],
+                        "inflate": 0,
+                        "mirror": false
+                      }
+                    ]
+                  },
                   "clips": [
                     {
                       "name": "idle",
@@ -66,6 +78,8 @@ class AnimaTrucJsonImporterTest {
         assertTrue(pack.skeleton().containsBone("body"));
         assertEquals("body", pack.skeleton().bone("head").parentName());
         assertEquals(12f, pack.skeleton().bone("body").pivot().y(), 0.0001f);
+        assertEquals(1, pack.geometry().cubes().size());
+        assertEquals("body", pack.geometry().cubes().get(0).boneName());
 
         var clip = pack.clip("idle");
         assertNotNull(clip);

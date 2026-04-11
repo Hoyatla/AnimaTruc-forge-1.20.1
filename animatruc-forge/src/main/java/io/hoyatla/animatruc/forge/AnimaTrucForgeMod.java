@@ -1,5 +1,6 @@
 package io.hoyatla.animatruc.forge;
 
+import io.hoyatla.animatruc.forge.example.AnimaTrucExampleBootstrap;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,5 +12,11 @@ public final class AnimaTrucForgeMod {
 
     public AnimaTrucForgeMod() {
         LOGGER.info("AnimaTruc Forge runtime initialized");
+        try {
+            AnimaTrucExampleBootstrap.initialize();
+        }
+        catch (RuntimeException exception) {
+            LOGGER.error("Failed to bootstrap AnimaTruc example pack", exception);
+        }
     }
 }

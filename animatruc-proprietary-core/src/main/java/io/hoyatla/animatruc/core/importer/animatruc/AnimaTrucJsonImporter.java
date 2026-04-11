@@ -14,6 +14,8 @@ import io.hoyatla.animatruc.core.animation.Keyframe;
 import io.hoyatla.animatruc.core.animation.Transform;
 import io.hoyatla.animatruc.core.asset.AnimationAssetPack;
 import io.hoyatla.animatruc.core.asset.ModelBone;
+import io.hoyatla.animatruc.core.asset.ModelCube;
+import io.hoyatla.animatruc.core.asset.ModelGeometry;
 import io.hoyatla.animatruc.core.asset.ModelSkeleton;
 import io.hoyatla.animatruc.core.importer.AnimationAssetImporter;
 import io.hoyatla.animatruc.core.importer.ModelImportException;
@@ -39,9 +41,10 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
 
         JsonObject root = parseRoot(payload);
         ModelSkeleton skeleton = parseSkeleton(root, safeOptions.translationScale());
+        ModelGeometry geometry = parseGeometry(root, safeOptions.translationScale());
         Map<String, AnimationClip> clips = parseClips(root, safeOptions);
 
-        return new AnimationAssetPack(skeleton, clips);
+        return new AnimationAssetPack(skeleton, geometry, clips);
     }
 
     private static JsonObject parseRoot(String payload) {
@@ -203,6 +206,42 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
         }
 
         return clipsByName;
+    }
+
+    private static ModelGeometry parseGeometry(JsonObject root, float translationScale) {
+        JsonObject modelObject = getObject(root, "model");
+
+        if (modelObject == null)
+            return ModelGeometry.EMPTY;
+
+        JsonArray cubesArray = getArray(modelObject, "cubes");
+
+        if (cubesArray == null || cubesArray.isEmpty())
+            return ModelGeometry.EMPTY;
+
+        List<ModelCube> cubes = new ArrayList<>(cubesArray.size());
+
+        for (JsonElement cubeElement : cubesArray) {
+            JsonObject cubeObject = asObject(cubeElement);
+
+            if (cubeObject == null)
+                continue;
+
+            String boneName = getString(cubeObject, "bone", null);
+
+            if (boneName == null || boneName.isBlank())
+                continue;
+
+            String name = getString(cubeObject, "name", boneName + "_cube");
+            Vec3f from = parseVec3(cubeObject.get("from"), Vec3f.ZERO, translationScale);
+            Vec3f to = parseVec3(cubeObject.get("to"), Vec3f.ZERO, translationScale);
+            float inflate = getFloat(cubeObject, "inflate", 0f) * translationScale;
+            boolean mirror = getBoolean(cubeObject, "mirror", false);
+
+            cubes.add(new ModelCube(name, boneName, from, to, inflate, mirror));
+        }
+
+        return cubes.isEmpty() ? ModelGeometry.EMPTY : new ModelGeometry(cubes);
     }
 
     private static float parseClipLengthTicks(JsonObject clipObject, ModelImportOptions options) {

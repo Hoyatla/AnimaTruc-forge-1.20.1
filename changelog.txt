@@ -1,8 +1,29 @@
+v1.0.0-proprietary.4 (AnimaTruc)
+- Add unified `animatruc-pack` workflow (model + animations in one runtime pack file).
+- Add model geometry payload in core assets:
+  - `ModelGeometry`
+  - `ModelCube`
+  - `AnimationAssetPack` now carries geometry + skeleton + clips
+- Add importer route upgrades:
+  - new extension support: `.animatrucpack`, `.animatrucpack.json`
+  - source-name based importer entrypoint (`importFromString`) for runtime/resource loading
+- Upgrade Blockbench plugin to V2 (`blockbench-plugin/animatruc_exporter.js`):
+  - native open/import shortcuts for `.bbmodel` and `.gltf`
+  - project validation action
+  - pack preview action
+  - unified runtime pack export (`.animatrucpack.json`)
+- Add Forge runtime loader + example bootstrap:
+  - `AnimaTrucForgePackLoader`
+  - `AnimaTrucExampleBootstrap`
+  - shipped example pack resource under `assets/animatruc/animatrucpacks`
+- Add E2E test proof:
+  - plugin-exported pack fixture imported through runtime importer with assertions
+
 v1.0.0-proprietary.3 (AnimaTruc)
 - Add dedicated AnimaTruc JSON importer (`.animatruc.json`, `.animatruc`) in core runtime.
 - Add direct import route in `AnimationAssetImporters` for AnimaTruc pack files.
 - Add Blockbench plugin in repository:
-  - `blockbench-plugin/animatruc.blockbench.js`
+  - `blockbench-plugin/animatruc_exporter.js`
   - export action for direct AnimaTruc pack generation
   - validation action for channels/bones consistency
 - Add importer regression tests for AnimaTruc pack format and route resolution.
