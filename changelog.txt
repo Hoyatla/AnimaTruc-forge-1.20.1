@@ -1,3 +1,13 @@
+v1.0.0-proprietary.3 (AnimaTruc)
+- Add dedicated AnimaTruc JSON importer (`.animatruc.json`, `.animatruc`) in core runtime.
+- Add direct import route in `AnimationAssetImporters` for AnimaTruc pack files.
+- Add Blockbench plugin in repository:
+  - `blockbench-plugin/animatruc.blockbench.js`
+  - export action for direct AnimaTruc pack generation
+  - validation action for channels/bones consistency
+- Add importer regression tests for AnimaTruc pack format and route resolution.
+- Add Blockbench plugin usage guide in `blockbench-plugin/README.md`.
+
 v1.0.0-proprietary.2 (AnimaTruc)
 - Add asset model import API with stable pack output (`AnimationAssetPack`).
 - Add skeleton representation (`ModelSkeleton`, `ModelBone`) for authoring pipeline.

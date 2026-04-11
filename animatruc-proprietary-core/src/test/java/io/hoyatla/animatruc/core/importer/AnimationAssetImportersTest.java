@@ -33,6 +33,29 @@ class AnimationAssetImportersTest {
     }
 
     @Test
+    void shouldRouteAnimaTrucJsonByExtension() throws Exception {
+        Path animatruc = this.tempDirectory.resolve("robot.animatruc.json");
+        Files.writeString(
+                animatruc,
+                """
+                        {
+                          "format": "animatruc-pack",
+                          "version": 1,
+                          "skeleton": {
+                            "bones": [
+                              { "name": "root", "pivot": [0,0,0] }
+                            ]
+                          },
+                          "clips": []
+                        }
+                        """
+        );
+
+        var pack = AnimationAssetImporters.importFromPath(animatruc);
+        assertTrue(pack.skeleton().containsBone("root"));
+    }
+
+    @Test
     void shouldRejectUnsupportedExtension() throws Exception {
         Path unsupported = this.tempDirectory.resolve("test.json");
         Files.writeString(unsupported, "{}");

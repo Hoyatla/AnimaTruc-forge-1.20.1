@@ -12,7 +12,14 @@ AnimaTruc is a proprietary Minecraft animation runtime targeting Forge 1.20.1 wi
 - Animation graph runtime with state transitions and fades
 - Procedural modifiers (look-at, breathing, two-bone IK)
 - Built-in runtime profiling
-- Asset import pipeline for `.bbmodel` and `.gltf`
+- Asset import pipeline for `.bbmodel`, `.gltf`, and `.animatruc.json`
+
+## Blockbench Plugin
+- Location: `blockbench-plugin/animatruc.blockbench.js`
+- Installs two actions in Blockbench:
+  - `Export AnimaTruc Pack`
+  - `Validate For AnimaTruc`
+- Produces `.animatruc.json` packs directly consumable by AnimaTruc importer.
 
 ## Build
 ```powershell
