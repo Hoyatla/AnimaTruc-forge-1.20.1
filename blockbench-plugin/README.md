@@ -13,13 +13,14 @@
 - `Fichier -> Importer -> Importer .gltf pour AnimaTruc`
 - `Animation -> Valider pour AnimaTruc`
 - `Animation -> Prévisualiser le pack AnimaTruc`
-- `Fichier -> Exporter -> Exporter le pack runtime AnimaTruc`
+- `Fichier -> Exporter -> Exporter AnimaTruc`
 
 ## Format d'export
 - Extension : `.animatrucpack`
 - Contenu :
   - os du squelette (nom, parent, pivot, bind pose)
   - cubes du modèle (liaison os + bornes)
+  - meshes du modèle (vertices + faces + UV)
   - animations
   - pistes par os : translation / rotation / scale
 - La rotation est exportée en quaternions pour usage runtime direct.

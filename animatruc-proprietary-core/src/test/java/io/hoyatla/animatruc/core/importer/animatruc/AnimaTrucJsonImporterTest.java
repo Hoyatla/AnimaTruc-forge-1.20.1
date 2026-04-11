@@ -47,6 +47,24 @@ class AnimaTrucJsonImporterTest {
                         "inflate": 0,
                         "mirror": false
                       }
+                    ],
+                    "meshes": [
+                      {
+                        "name": "head_mesh",
+                        "bone": "head",
+                        "origin": [0, 30, 0],
+                        "vertices": [
+                          [0, 0, 0],
+                          [1, 0, 0],
+                          [0, 1, 0]
+                        ],
+                        "faces": [
+                          {
+                            "indices": [0, 1, 2],
+                            "uvs": [[0, 0], [1, 0], [0, 1]]
+                          }
+                        ]
+                      }
                     ]
                   },
                   "clips": [
@@ -80,6 +98,10 @@ class AnimaTrucJsonImporterTest {
         assertEquals(12f, pack.skeleton().bone("body").pivot().y(), 0.0001f);
         assertEquals(1, pack.geometry().cubes().size());
         assertEquals("body", pack.geometry().cubes().get(0).boneName());
+        assertEquals(1, pack.geometry().meshes().size());
+        assertEquals("head", pack.geometry().meshes().get(0).boneName());
+        assertEquals(3, pack.geometry().meshes().get(0).vertices().size());
+        assertEquals(1, pack.geometry().meshes().get(0).faces().size());
 
         var clip = pack.clip("idle");
         assertNotNull(clip);

@@ -70,8 +70,13 @@ class AnimationAssetImportersTest {
                             ]
                           },
                           "model": {
-                            "cubes": [
-                              { "name": "cube", "bone": "root", "from": [0,0,0], "to": [1,1,1] }
+                            "meshes": [
+                              {
+                                "name": "mesh",
+                                "bone": "root",
+                                "vertices": [[0,0,0], [1,0,0], [0,1,0]],
+                                "faces": [{ "indices": [0,1,2] }]
+                              }
                             ]
                           },
                           "clips": []
@@ -82,6 +87,7 @@ class AnimationAssetImportersTest {
         var pack = AnimationAssetImporters.importFromPath(animatrucPack);
         assertTrue(pack.skeleton().containsBone("root"));
         assertTrue(!pack.geometry().isEmpty());
+        assertTrue(pack.geometry().meshes().size() == 1);
     }
 
     @Test

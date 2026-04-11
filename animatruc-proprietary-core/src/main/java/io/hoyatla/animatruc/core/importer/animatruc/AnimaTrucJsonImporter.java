@@ -16,7 +16,10 @@ import io.hoyatla.animatruc.core.asset.AnimationAssetPack;
 import io.hoyatla.animatruc.core.asset.ModelBone;
 import io.hoyatla.animatruc.core.asset.ModelCube;
 import io.hoyatla.animatruc.core.asset.ModelGeometry;
+import io.hoyatla.animatruc.core.asset.ModelMesh;
+import io.hoyatla.animatruc.core.asset.ModelMeshFace;
 import io.hoyatla.animatruc.core.asset.ModelSkeleton;
+import io.hoyatla.animatruc.core.asset.ModelUv;
 import io.hoyatla.animatruc.core.importer.AnimationAssetImporter;
 import io.hoyatla.animatruc.core.importer.ModelImportException;
 import io.hoyatla.animatruc.core.importer.ModelImportOptions;
@@ -215,33 +218,148 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
             return ModelGeometry.EMPTY;
 
         JsonArray cubesArray = getArray(modelObject, "cubes");
+        JsonArray meshesArray = getArray(modelObject, "meshes");
+        List<ModelCube> cubes = new ArrayList<>(cubesArray == null ? 0 : cubesArray.size());
+        List<ModelMesh> meshes = new ArrayList<>(meshesArray == null ? 0 : meshesArray.size());
 
-        if (cubesArray == null || cubesArray.isEmpty())
-            return ModelGeometry.EMPTY;
+        if (cubesArray != null) {
+            for (JsonElement cubeElement : cubesArray) {
+                JsonObject cubeObject = asObject(cubeElement);
 
-        List<ModelCube> cubes = new ArrayList<>(cubesArray.size());
+                if (cubeObject == null)
+                    continue;
 
-        for (JsonElement cubeElement : cubesArray) {
-            JsonObject cubeObject = asObject(cubeElement);
+                String boneName = getString(cubeObject, "bone", null);
 
-            if (cubeObject == null)
-                continue;
+                if (boneName == null || boneName.isBlank())
+                    continue;
 
-            String boneName = getString(cubeObject, "bone", null);
+                String name = getString(cubeObject, "name", boneName + "_cube");
+                Vec3f from = parseVec3(cubeObject.get("from"), Vec3f.ZERO, translationScale);
+                Vec3f to = parseVec3(cubeObject.get("to"), Vec3f.ZERO, translationScale);
+                float inflate = getFloat(cubeObject, "inflate", 0f) * translationScale;
+                boolean mirror = getBoolean(cubeObject, "mirror", false);
 
-            if (boneName == null || boneName.isBlank())
-                continue;
-
-            String name = getString(cubeObject, "name", boneName + "_cube");
-            Vec3f from = parseVec3(cubeObject.get("from"), Vec3f.ZERO, translationScale);
-            Vec3f to = parseVec3(cubeObject.get("to"), Vec3f.ZERO, translationScale);
-            float inflate = getFloat(cubeObject, "inflate", 0f) * translationScale;
-            boolean mirror = getBoolean(cubeObject, "mirror", false);
-
-            cubes.add(new ModelCube(name, boneName, from, to, inflate, mirror));
+                cubes.add(new ModelCube(name, boneName, from, to, inflate, mirror));
+            }
         }
 
-        return cubes.isEmpty() ? ModelGeometry.EMPTY : new ModelGeometry(cubes);
+        if (meshesArray != null) {
+            for (JsonElement meshElement : meshesArray) {
+                JsonObject meshObject = asObject(meshElement);
+
+                if (meshObject == null)
+                    continue;
+
+                String boneName = getString(meshObject, "bone", null);
+
+                if (boneName == null || boneName.isBlank())
+                    continue;
+
+                String name = getString(meshObject, "name", boneName + "_mesh");
+                Vec3f origin = parseVec3(meshObject.get("origin"), Vec3f.ZERO, translationScale);
+                List<Vec3f> vertices = parseVertices(getArray(meshObject, "vertices"), translationScale);
+                List<ModelMeshFace> faces = parseFaces(getArray(meshObject, "faces"));
+
+                if (!vertices.isEmpty() && !faces.isEmpty())
+                    meshes.add(new ModelMesh(name, boneName, origin, vertices, faces));
+            }
+        }
+
+        if (cubes.isEmpty() && meshes.isEmpty())
+            return ModelGeometry.EMPTY;
+
+        return new ModelGeometry(cubes, meshes);
+    }
+
+    private static List<Vec3f> parseVertices(JsonArray verticesArray, float translationScale) {
+        if (verticesArray == null)
+            return List.of();
+
+        List<Vec3f> vertices = new ArrayList<>(verticesArray.size());
+
+        for (JsonElement vertexElement : verticesArray) {
+            vertices.add(parseVec3(vertexElement, Vec3f.ZERO, translationScale));
+        }
+
+        return vertices;
+    }
+
+    private static List<ModelMeshFace> parseFaces(JsonArray facesArray) {
+        if (facesArray == null)
+            return List.of();
+
+        List<ModelMeshFace> faces = new ArrayList<>(facesArray.size());
+
+        for (JsonElement faceElement : facesArray) {
+            JsonObject faceObject = asObject(faceElement);
+
+            if (faceObject == null)
+                continue;
+
+            List<Integer> indices = parseFaceIndices(getArray(faceObject, "indices"));
+
+            if (indices.size() < 3)
+                continue;
+
+            List<ModelUv> uvs = parseFaceUvs(getArray(faceObject, "uvs"));
+            faces.add(new ModelMeshFace(indices, uvs));
+        }
+
+        return faces;
+    }
+
+    private static List<Integer> parseFaceIndices(JsonArray indicesArray) {
+        if (indicesArray == null)
+            return List.of();
+
+        List<Integer> indices = new ArrayList<>(indicesArray.size());
+
+        for (JsonElement indexElement : indicesArray) {
+            try {
+                indices.add(indexElement.getAsInt());
+            }
+            catch (RuntimeException ignored) {
+                // Skip malformed index entries.
+            }
+        }
+
+        return indices;
+    }
+
+    private static List<ModelUv> parseFaceUvs(JsonArray uvsArray) {
+        if (uvsArray == null)
+            return List.of();
+
+        List<ModelUv> uvs = new ArrayList<>(uvsArray.size());
+
+        for (JsonElement uvElement : uvsArray) {
+            if (uvElement == null || uvElement.isJsonNull())
+                continue;
+
+            if (uvElement.isJsonArray()) {
+                JsonArray uvArray = uvElement.getAsJsonArray();
+
+                if (uvArray.size() >= 2) {
+                    uvs.add(new ModelUv(
+                            parseFloat(uvArray.get(0), 0f),
+                            parseFloat(uvArray.get(1), 0f)
+                    ));
+                }
+                continue;
+            }
+
+            JsonObject uvObject = asObject(uvElement);
+
+            if (uvObject != null) {
+                uvs.add(new ModelUv(
+                        parseFloat(uvObject.get("u"), 0f),
+                        parseFloat(uvObject.get("v"), 0f)
+                ));
+            }
+        }
+
+        return uvs;
     }
 
     private static float parseClipLengthTicks(JsonObject clipObject, ModelImportOptions options) {

@@ -1,3 +1,14 @@
+v1.0.0-proprietary.5 (AnimaTruc)
+- Add mesh geometry support in `animatruc-pack`:
+  - new core asset types: `ModelMesh`, `ModelMeshFace`, `ModelUv`
+  - `ModelGeometry` now carries both cubes and meshes
+- Upgrade AnimaTruc JSON importer to parse:
+  - `model.meshes[].vertices`
+  - `model.meshes[].faces` (indices + UVs)
+- Upgrade Blockbench plugin exporter to include mesh payload when project uses Mesh objects.
+- Keep `.animatrucpack` runtime format unchanged while extending geometry coverage.
+- Add regression assertions for mesh-only pack imports.
+
 v1.0.0-proprietary.4 (AnimaTruc)
 - Add unified `animatruc-pack` workflow (model + animations in one runtime pack file).
 - Add model geometry payload in core assets:

@@ -179,6 +179,91 @@
         });
     }
 
+    function readMeshVertices(mesh) {
+        const vertices = [];
+        const indicesByKey = {};
+
+        if (!mesh || !mesh.vertices || typeof mesh.vertices !== "object") {
+            return { vertices: vertices, indicesByKey: indicesByKey };
+        }
+
+        Object.keys(mesh.vertices).forEach(function (key, index) {
+            const raw = mesh.vertices[key];
+            const vec = Array.isArray(raw)
+                ? toVec3(raw, 0, 0, 0)
+                : [toNumber(raw.x, 0), toNumber(raw.y, 0), toNumber(raw.z, 0)];
+
+            indicesByKey[key] = index;
+            vertices.push(vec);
+        });
+
+        return { vertices: vertices, indicesByKey: indicesByKey };
+    }
+
+    function buildMeshFaces(mesh, indicesByKey) {
+        const faces = [];
+
+        if (!mesh || !mesh.faces || typeof mesh.faces !== "object") {
+            return faces;
+        }
+
+        Object.keys(mesh.faces).forEach(function (faceKey) {
+            const face = mesh.faces[faceKey];
+
+            if (!face || !Array.isArray(face.vertices) || face.vertices.length < 3) {
+                return;
+            }
+
+            const indices = [];
+            const uvs = [];
+
+            face.vertices.forEach(function (vertexKey) {
+                const index = indicesByKey[vertexKey];
+
+                if (typeof index === "number") {
+                    indices.push(index);
+
+                    if (face.uv && face.uv[vertexKey]) {
+                        const uv = face.uv[vertexKey];
+                        uvs.push([toNumber(uv[0], 0), toNumber(uv[1], 0)]);
+                    }
+                }
+            });
+
+            if (indices.length >= 3) {
+                faces.push({
+                    indices: indices,
+                    uvs: uvs
+                });
+            }
+        });
+
+        return faces;
+    }
+
+    function buildModelMeshes() {
+        if (typeof Mesh === "undefined" || !Array.isArray(Mesh.all)) {
+            return [];
+        }
+
+        return Mesh.all.map(function (mesh, index) {
+            const parent = mesh.parent instanceof Group ? mesh.parent.name : "root";
+            const origin = toVec3(mesh.origin, 0, 0, 0);
+            const parsedVertices = readMeshVertices(mesh);
+            const faces = buildMeshFaces(mesh, parsedVertices.indicesByKey);
+
+            return {
+                name: mesh.name || ("mesh_" + index),
+                bone: parent,
+                origin: origin,
+                vertices: parsedVertices.vertices,
+                faces: faces
+            };
+        }).filter(function (mesh) {
+            return mesh.vertices.length > 0 && mesh.faces.length > 0;
+        });
+    }
+
     function buildTrackFromAnimator(animator) {
         const track = {
             translation: [],
@@ -283,7 +368,8 @@
                 bones: buildSkeleton()
             },
             model: {
-                cubes: buildModelCubes()
+                cubes: buildModelCubes(),
+                meshes: buildModelMeshes()
             },
             clips: buildClips()
         };
@@ -307,8 +393,11 @@
             warnings.push("Aucun os trouvé. Crée au moins un groupe pour le squelette AnimaTruc.");
         }
 
-        if (!Cube || !Array.isArray(Cube.all) || Cube.all.length === 0) {
-            warnings.push("Aucun cube trouvé. La section géométrie du modèle sera vide.");
+        const cubeCount = Cube && Array.isArray(Cube.all) ? Cube.all.length : 0;
+        const meshCount = typeof Mesh !== "undefined" && Array.isArray(Mesh.all) ? Mesh.all.length : 0;
+
+        if (cubeCount === 0 && meshCount === 0) {
+            warnings.push("Aucune géométrie trouvée (ni cubes ni meshes).");
         }
 
         Animation.all.forEach(function (animation) {
@@ -359,6 +448,7 @@
             "Projet : " + (pack.meta.projectName || "sans_nom"),
             "Os : " + pack.skeleton.bones.length,
             "Cubes : " + pack.model.cubes.length,
+            "Meshes : " + (pack.model.meshes ? pack.model.meshes.length : 0),
             "Animations : " + pack.clips.length
         ];
 
@@ -383,7 +473,7 @@
 
         Blockbench.export({
             resource_id: "animatruc_pack",
-            type: "Pack Runtime AnimaTruc",
+            type: "AnimaTruc",
             extensions: ["animatrucpack"],
             name: suggestedName,
             content: JSON.stringify(pack, null, 2)
@@ -458,7 +548,7 @@
             });
 
             exportAction = new Action("animatruc_export_pack", {
-                name: "Exporter le pack runtime AnimaTruc",
+                name: "Exporter AnimaTruc",
                 description: "Exporte modèle + animations vers .animatrucpack",
                 icon: "fa-file-export",
                 click: exportPack
