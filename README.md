@@ -6,6 +6,14 @@ AnimaTruc is a proprietary Minecraft animation runtime targeting Forge 1.20.1 wi
 - `animatruc-proprietary-core`: clean-room animation runtime (`io.hoyatla.animatruc.*`)
 - `animatruc-forge`: Forge integration layer and mod bootstrap
 
+## Runtime Features
+- Deterministic blending (weighted + additive)
+- Layer system with per-bone masks
+- Animation graph runtime with state transitions and fades
+- Procedural modifiers (look-at, breathing, two-bone IK)
+- Built-in runtime profiling
+- Asset import pipeline for `.bbmodel` and `.gltf`
+
 ## Build
 ```powershell
 $env:JAVA_HOME='C:\Program Files\Java\jdk-17'

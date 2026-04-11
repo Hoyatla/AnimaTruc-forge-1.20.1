@@ -1,3 +1,18 @@
+v1.0.0-proprietary.2 (AnimaTruc)
+- Add asset model import API with stable pack output (`AnimationAssetPack`).
+- Add skeleton representation (`ModelSkeleton`, `ModelBone`) for authoring pipeline.
+- Add Blockbench importer:
+  - parse outliner/bones hierarchy
+  - parse animation channels (position/rotation/scale)
+  - convert keyframes to AnimaTruc runtime clips
+- Add glTF JSON importer:
+  - parse nodes and parent hierarchy
+  - parse animation samplers/channels
+  - decode FLOAT accessors from embedded or external buffers
+  - convert translation/rotation/scale tracks to AnimaTruc clips
+- Add extension-based importer facade (`AnimationAssetImporters`) for `.bbmodel` and `.gltf`.
+- Add regression tests for bbmodel import, gltf import, and importer routing.
+
 v1.0.0-proprietary.1 (AnimaTruc)
 - Add layered animation system with per-layer weighting and per-bone masks.
 - Add animation graph runtime:
