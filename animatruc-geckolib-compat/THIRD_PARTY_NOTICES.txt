@@ -1,0 +1,11 @@
+AnimaTruc GeckoLib Bridge - Third-Party Notices
+
+This module is an addon bridge between AnimaTruc and the official GeckoLib mod.
+It does not bundle, shade, relocate, or republish GeckoLib classes.
+
+Referenced upstream project:
+- GeckoLib
+- Source: https://github.com/bernie-g/geckolib
+- License: MIT
+
+Official GeckoLib remains a required external runtime dependency.

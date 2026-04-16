@@ -14,17 +14,25 @@ public record AnimatorContext(
         float lookYawDegrees,
         float lookPitchDegrees,
         Vec3f ikTarget,
-        Map<String, Float> scalarParameters) {
+        Map<String, Float> scalarParameters,
+        Map<String, Vec3f> vectorParameters) {
     public AnimatorContext(float distanceToCamera, boolean visible, boolean forceTick) {
-        this(distanceToCamera, visible, forceTick, 0f, 0f, null, Map.of());
+        this(distanceToCamera, visible, forceTick, 0f, 0f, null, Map.of(), Map.of());
     }
 
     public AnimatorContext {
         scalarParameters = scalarParameters == null ? Map.of() : Map.copyOf(scalarParameters);
+        vectorParameters = vectorParameters == null ? Map.of() : Map.copyOf(vectorParameters);
     }
 
     public float scalar(String key, float fallback) {
         Float value = this.scalarParameters.get(key);
+
+        return value == null ? fallback : value;
+    }
+
+    public Vec3f vector(String key, Vec3f fallback) {
+        Vec3f value = this.vectorParameters.get(key);
 
         return value == null ? fallback : value;
     }
@@ -37,7 +45,8 @@ public record AnimatorContext(
                 .lookYawDegrees(this.lookYawDegrees)
                 .lookPitchDegrees(this.lookPitchDegrees)
                 .ikTarget(this.ikTarget)
-                .scalarParameters(this.scalarParameters);
+                .scalarParameters(this.scalarParameters)
+                .vectorParameters(this.vectorParameters);
     }
 
     public static AnimatorContext visibleNear() {
@@ -56,6 +65,7 @@ public record AnimatorContext(
         private float lookPitchDegrees;
         private Vec3f ikTarget;
         private Map<String, Float> scalarParameters = Map.of();
+        private Map<String, Vec3f> vectorParameters = Map.of();
 
         public Builder distanceToCamera(float value) {
             this.distanceToCamera = value;
@@ -92,6 +102,41 @@ public record AnimatorContext(
             return this;
         }
 
+        public Builder scalarParameter(String key, float value) {
+            if (key == null)
+                return this;
+
+            if (this.scalarParameters.isEmpty()) {
+                this.scalarParameters = Map.of(key, value);
+                return this;
+            }
+
+            var mutable = new java.util.HashMap<>(this.scalarParameters);
+            mutable.put(key, value);
+            this.scalarParameters = Map.copyOf(mutable);
+            return this;
+        }
+
+        public Builder vectorParameters(Map<String, Vec3f> values) {
+            this.vectorParameters = values == null ? Map.of() : Map.copyOf(values);
+            return this;
+        }
+
+        public Builder vectorParameter(String key, Vec3f value) {
+            if (key == null || value == null)
+                return this;
+
+            if (this.vectorParameters.isEmpty()) {
+                this.vectorParameters = Map.of(key, value);
+                return this;
+            }
+
+            var mutable = new java.util.HashMap<>(this.vectorParameters);
+            mutable.put(key, value);
+            this.vectorParameters = Map.copyOf(mutable);
+            return this;
+        }
+
         public AnimatorContext build() {
             return new AnimatorContext(
                     this.distanceToCamera,
@@ -100,7 +145,8 @@ public record AnimatorContext(
                     this.lookYawDegrees,
                     this.lookPitchDegrees,
                     this.ikTarget,
-                    this.scalarParameters
+                    this.scalarParameters,
+                    this.vectorParameters
             );
         }
     }

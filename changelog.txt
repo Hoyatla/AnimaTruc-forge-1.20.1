@@ -1,3 +1,79 @@
+v1.0.0-proprietary.9 (AnimaTruc)
+- Split licensing for publication:
+  - `animatruc-proprietary-core`, `animatruc-forge`, and `animatruc-geckolib-compat` are `All Rights Reserved`
+- Refactor `animatruc-geckolib-compat` into a distinct bridge addon:
+  - bridge mod id changed to `animatruc_geckobridge`
+  - explicit dependencies now include `geckolib` official (external)
+  - no `software.bernie.geckolib` classes shipped in bridge jar
+- Add Gecko bridge runtime pipeline:
+  - `GeckoResourceLocator`
+  - `GeckoAssetImporter`
+  - `GeckoAssetCache`
+  - `GeckoClipResolver`
+  - non-crashing fallback on lookup/parse/clip resolution failures
+- Add resource reload cache invalidation for bridge imports.
+- Add module-local legal files and notices for compatibility publishing:
+  - `animatruc-geckolib-compat/LICENSE`
+  - `animatruc-geckolib-compat/THIRD_PARTY_NOTICES.txt`
+- Update compat packaging so legal files are embedded in runtime jar, sources jar, and javadoc jar.
+- Add minimal core runtime extension points for bridge consumers:
+  - `AnimationClipResolverRegistry`
+  - `AnimaTrucRuntime.resolveExternalClip(...)`
+  - `AnimaTrucRuntime.createExternalClipState(...)`
+- Clarify mixed licensing and bridge architecture in documentation.
+
+v1.0.0-proprietary.8 (AnimaTruc)
+- Add new Forge module `animatruc-geckolib-compat` producing:
+  - `compat-animatruc-geckolib-1.20.1.jar`
+- Compatibility module exposes `modId=geckolib` and a GeckoLib API shim subset:
+  - `GeoAnimatable`, `AnimatableInstanceCache`, `AnimationController`, `AnimatableManager`, `RawAnimation`
+  - `GeoModel`, `Defaulted*GeoModel`, `GeoEntityRenderer`, `GeoRenderLayer`, utility aliases
+- Add bridge runtime from Gecko-compatible controller requests to AnimaTruc animator instances.
+- Add dedicated compat config (`animatruc-geckolib-compat-client.toml`) with:
+  - compat enable switch
+  - strict API mode
+  - max compat animators
+  - performance profile
+- Expand GeckoLib compatibility surface for external mods:
+  - add animatable contracts (`GeoItem`, `GeoBlockEntity`, `SingletonGeoAnimatable`, stateless variants)
+  - add renderer shims (`GeoItemRenderer`, `GeoArmorRenderer`, `GeoBlockRenderer`, `GeoObjectRenderer`, `GeoReplacedEntityRenderer`, `DynamicGeoEntityRenderer`)
+  - add keyframe/molang/object/network/event compatibility types used by runtime linking
+  - align packet constructor/method signatures with GeckoLib Forge 1.20.1 patterns (`encode/decode/receivePacket`)
+- Add symbol coverage audit against PrismLauncher instance mods:
+  - report file: `compat_geckolib_symbol_report_after.json`
+  - detected symbols: 205
+  - provided symbols: 226
+  - unresolved symbols: 0
+- Important packaging mode:
+  - this compatibility jar is designed as a GeckoLib replacement layer and should not be loaded alongside official GeckoLib.
+
+v1.0.0-proprietary.7 (AnimaTruc)
+- Add automatic locomotion presets in core runtime:
+  - biped (2 legs), hexapod (6 legs), octopod (8 legs), myriapod (many legs)
+  - confidence-scored skeleton detection with anti-false-positive filters
+  - chain-level metadata (side, anchor, lengths, gait phase)
+- Add Forge preset builder:
+  - `AutoGroundContactPresetFactory` to generate IK chains + ground-contact limb setup
+  - `AutoGroundContactPreset` bundle with direct `createIkModifier()` and `createGroundController()`
+- Add Forge client config system:
+  - `animatruc-client.toml` with profile toggles and performance modes
+  - in-game config menu screen (`AnimaTruc Presets`) for lightweight machines
+- Add tests for auto-detection reliability (biped, hexapod, myriapod trimming).
+
+v1.0.0-proprietary.6 (AnimaTruc)
+- Add multi-limb IK runtime overlay for foot/leg chains:
+  - new `MultiLimbIKModifier` with per-chain target keys
+  - new `IkChainDefinition` and `IkPlane` to configure humanoid/spider limbs
+  - optional per-chain scalar weight parameter for blend control
+- Extend `AnimatorContext` for vector parameters:
+  - `vectorParameters` map and `vector(key, fallback)` accessor
+  - builder helpers for scalar/vector single-parameter writes
+- Add Forge ground-contact utilities for Minecraft block terrain:
+  - `GroundContactController`: per-limb stance/swing state + downward block raycasts
+  - `GroundContactLimbDefinition`: limb anchors and stepping configuration
+  - `GroundContactContextAdapter`: bridge to inject IK targets into animator context
+- Add tests covering context vector parameters and multi-limb IK behavior.
+
 v1.0.0-proprietary.5 (AnimaTruc)
 - Add mesh geometry support in `animatruc-pack`:
   - new core asset types: `ModelMesh`, `ModelMeshFace`, `ModelUv`

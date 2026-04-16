@@ -1,0 +1,146 @@
+﻿AnimaTruc Developer Manual (Forge 1.20.1 / Java 17)
+Version: 1.0.0-proprietary.7
+
+1. Purpose
+AnimaTruc provides a proprietary animation runtime for Minecraft Forge mods with:
+- deterministic blending
+- animation graph layers
+- procedural modifiers
+- block-ground contact IK
+- automatic locomotion presets
+
+2. Automatic Locomotion Presets
+Supported automatic profiles:
+- BIPED   = 2 legs
+- HEXAPOD = 6 legs
+- OCTOPOD = 8 legs
+- MYRIAPOD = more than 8 legs (centipede/millipede class)
+
+Main entrypoint:
+- io.hoyatla.animatruc.forge.preset.AutoGroundContactPresetFactory
+
+Factory output:
+- AutoGroundContactPreset
+  - createIkModifier()
+  - createGroundController()
+  - detectionReport()
+
+3. Anti False-Positive Leg Detection Strategy
+Detection is score-based and rejects weak chains.
+
+3.1 Naming score
+Positive tokens:
+- End: foot, paw, hoof, toe, claw
+- Mid: lower_leg, shin, knee, tibia, calf
+- Root: upper_leg, thigh, hip
+
+3.2 Hierarchy constraints
+A valid chain must resolve:
+- end bone -> mid parent -> root parent
+
+3.3 Exclusion filters
+The chain is rejected when name tokens match:
+- arm, hand, finger, wing, tail, head, antenna, horn, ear
+
+3.4 Geometry sanity checks
+The chain confidence is improved only if:
+- upper and lower lengths are non-zero
+- pivots are coherent for lower-body usage
+
+3.5 Confidence threshold
+Only chains above minimum confidence are accepted.
+Default is 0.55 and configurable.
+
+3.6 Safety caps
+- maxDetectedChains limits total chain count
+- maxMyriapodChains limits many-leg profiles
+
+4. Recommended Bone Naming
+Use clear names to maximize stable auto-detection:
+- left_upper_leg, left_lower_leg, left_foot
+- right_upper_leg, right_lower_leg, right_foot
+
+Hexapod example:
+- front_left_upper_leg / front_left_lower_leg / front_left_foot
+- mid_left_upper_leg   / mid_left_lower_leg   / mid_left_foot
+- rear_left_upper_leg  / rear_left_lower_leg  / rear_left_foot
+(and right side equivalent)
+
+Myriapod recommendation:
+- segment_00_left_upper_leg ... segment_00_left_foot
+- segment_00_right_upper_leg ... segment_00_right_foot
+- repeat by segment index
+
+5. Runtime Integration Flow
+Step 1: Load pack and read skeleton
+Step 2: Detect preset via AutoGroundContactPresetFactory
+Step 3: Add IK modifier to animator
+Step 4: Every client tick, update ground controller and inject targets in AnimatorContext
+
+Reference snippet:
+
+Optional<AutoGroundContactPreset> preset = AutoGroundContactPresetFactory.detect(pack.skeleton());
+if (preset.isPresent()) {
+    AutoGroundContactPreset p = preset.get();
+    animator.addModifier(p.createIkModifier());
+    GroundContactController controller = p.createGroundController();
+
+    Map<String, Vec3f> targets = controller.update(entity, entity.getYRot(), partialTicks);
+    AnimatorContext ctx = GroundContactContextAdapter.attachTargets(
+            AnimatorContext.visibleNear(),
+            targets,
+            GroundContactContextAdapter.horizontalSpeed(entity)
+    );
+    animator.update(ctx, partialTicks);
+}
+
+6. Configuration Menu (Lightweight Machines)
+File:
+- config/animatruc-client.toml
+
+In-game menu:
+- AnimaTruc Presets
+
+Toggles:
+- enableAutoDetection
+- enableBipedPreset
+- enableHexapodPreset
+- enableOctopodPreset
+- enableMyriapodPreset
+- enableGroundRaycast
+- performanceMode = FULL / BALANCED / LIGHT
+- minDetectionConfidence
+
+Performance recommendation:
+- FULL: high quality, higher CPU
+- BALANCED: default
+- LIGHT: low-end hardware mode
+
+7. Client/Server Side Rules
+- Ground-contact raycasts and IK target generation should run client-side for visual animation.
+- Keep gameplay authority on server and do not attach combat/game logic to visual IK output.
+
+8. Myriapod Specific Notes
+- Keep chain cap enabled (maxMyriapodChains).
+- Use shorter step distance and lift height.
+- Use LIGHT mode on low-end hardware.
+- Keep naming regular by segment index and side.
+
+9. Debug Checklist
+If legs are misdetected:
+- verify clear leg naming
+- ensure 3-bone chain hierarchy exists
+- lower confidence threshold only when naming cannot be changed
+- inspect detectionReport warnings
+- disable problematic profile in config menu
+
+10. API Locations
+Core detection:
+- animatruc-proprietary-core/src/main/java/io/hoyatla/animatruc/core/preset/
+
+Forge preset/config:
+- animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/preset/
+- animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/config/
+- animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/ground/
+
+End of manual.

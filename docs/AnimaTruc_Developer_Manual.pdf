@@ -1,0 +1,357 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1763 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+50 760 Td
+(?AnimaTruc Developer Manual \(Forge 1.20.1 / Java 17\)) Tj
+T*
+(Version: 1.0.0-proprietary.7) Tj
+T*
+() Tj
+T*
+(1. Purpose) Tj
+T*
+(AnimaTruc provides a proprietary animation runtime for Minecraft Forge mods with:) Tj
+T*
+(- deterministic blending) Tj
+T*
+(- animation graph layers) Tj
+T*
+(- procedural modifiers) Tj
+T*
+(- block-ground contact IK) Tj
+T*
+(- automatic locomotion presets) Tj
+T*
+() Tj
+T*
+(2. Automatic Locomotion Presets) Tj
+T*
+(Supported automatic profiles:) Tj
+T*
+(- BIPED   = 2 legs) Tj
+T*
+(- HEXAPOD = 6 legs) Tj
+T*
+(- OCTOPOD = 8 legs) Tj
+T*
+(- MYRIAPOD = more than 8 legs \(centipede/millipede class\)) Tj
+T*
+() Tj
+T*
+(Main entrypoint:) Tj
+T*
+(- io.hoyatla.animatruc.forge.preset.AutoGroundContactPresetFactory) Tj
+T*
+() Tj
+T*
+(Factory output:) Tj
+T*
+(- AutoGroundContactPreset) Tj
+T*
+(  - createIkModifier\(\)) Tj
+T*
+(  - createGroundController\(\)) Tj
+T*
+(  - detectionReport\(\)) Tj
+T*
+() Tj
+T*
+(3. Anti False-Positive Leg Detection Strategy) Tj
+T*
+(Detection is score-based and rejects weak chains.) Tj
+T*
+() Tj
+T*
+(3.1 Naming score) Tj
+T*
+(Positive tokens:) Tj
+T*
+(- End: foot, paw, hoof, toe, claw) Tj
+T*
+(- Mid: lower_leg, shin, knee, tibia, calf) Tj
+T*
+(- Root: upper_leg, thigh, hip) Tj
+T*
+() Tj
+T*
+(3.2 Hierarchy constraints) Tj
+T*
+(A valid chain must resolve:) Tj
+T*
+(- end bone -> mid parent -> root parent) Tj
+T*
+() Tj
+T*
+(3.3 Exclusion filters) Tj
+T*
+(The chain is rejected when name tokens match:) Tj
+T*
+(- arm, hand, finger, wing, tail, head, antenna, horn, ear) Tj
+T*
+() Tj
+T*
+(3.4 Geometry sanity checks) Tj
+T*
+(The chain confidence is improved only if:) Tj
+T*
+(- upper and lower lengths are non-zero) Tj
+T*
+(- pivots are coherent for lower-body usage) Tj
+T*
+() Tj
+T*
+(3.5 Confidence threshold) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 2197 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+50 760 Td
+(Only chains above minimum confidence are accepted.) Tj
+T*
+(Default is 0.55 and configurable.) Tj
+T*
+() Tj
+T*
+(3.6 Safety caps) Tj
+T*
+(- maxDetectedChains limits total chain count) Tj
+T*
+(- maxMyriapodChains limits many-leg profiles) Tj
+T*
+() Tj
+T*
+(4. Recommended Bone Naming) Tj
+T*
+(Use clear names to maximize stable auto-detection:) Tj
+T*
+(- left_upper_leg, left_lower_leg, left_foot) Tj
+T*
+(- right_upper_leg, right_lower_leg, right_foot) Tj
+T*
+() Tj
+T*
+(Hexapod example:) Tj
+T*
+(- front_left_upper_leg / front_left_lower_leg / front_left_foot) Tj
+T*
+(- mid_left_upper_leg   / mid_left_lower_leg   / mid_left_foot) Tj
+T*
+(- rear_left_upper_leg  / rear_left_lower_leg  / rear_left_foot) Tj
+T*
+(\(and right side equivalent\)) Tj
+T*
+() Tj
+T*
+(Myriapod recommendation:) Tj
+T*
+(- segment_00_left_upper_leg ... segment_00_left_foot) Tj
+T*
+(- segment_00_right_upper_leg ... segment_00_right_foot) Tj
+T*
+(- repeat by segment index) Tj
+T*
+() Tj
+T*
+(5. Runtime Integration Flow) Tj
+T*
+(Step 1: Load pack and read skeleton) Tj
+T*
+(Step 2: Detect preset via AutoGroundContactPresetFactory) Tj
+T*
+(Step 3: Add IK modifier to animator) Tj
+T*
+(Step 4: Every client tick, update ground controller and inject targets in AnimatorContext) Tj
+T*
+() Tj
+T*
+(Reference snippet:) Tj
+T*
+() Tj
+T*
+(Optional<AutoGroundContactPreset> preset =) Tj
+T*
+(AutoGroundContactPresetFactory.detect\(pack.skeleton\(\)\);) Tj
+T*
+(if \(preset.isPresent\(\)\) {) Tj
+T*
+(    AutoGroundContactPreset p = preset.get\(\);) Tj
+T*
+(    animator.addModifier\(p.createIkModifier\(\)\);) Tj
+T*
+(    GroundContactController controller = p.createGroundController\(\);) Tj
+T*
+() Tj
+T*
+(    Map<String, Vec3f> targets = controller.update\(entity, entity.getYRot\(\), partialTicks\);) Tj
+T*
+(    AnimatorContext ctx = GroundContactContextAdapter.attachTargets\() Tj
+T*
+(            AnimatorContext.visibleNear\(\),) Tj
+T*
+(            targets,) Tj
+T*
+(            GroundContactContextAdapter.horizontalSpeed\(entity\)) Tj
+T*
+(    \);) Tj
+T*
+(    animator.update\(ctx, partialTicks\);) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+(6. Configuration Menu \(Lightweight Machines\)) Tj
+T*
+(File:) Tj
+T*
+(- config/animatruc-client.toml) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 1794 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+50 760 Td
+() Tj
+T*
+(In-game menu:) Tj
+T*
+(- AnimaTruc Presets) Tj
+T*
+() Tj
+T*
+(Toggles:) Tj
+T*
+(- enableAutoDetection) Tj
+T*
+(- enableBipedPreset) Tj
+T*
+(- enableHexapodPreset) Tj
+T*
+(- enableOctopodPreset) Tj
+T*
+(- enableMyriapodPreset) Tj
+T*
+(- enableGroundRaycast) Tj
+T*
+(- performanceMode = FULL / BALANCED / LIGHT) Tj
+T*
+(- minDetectionConfidence) Tj
+T*
+() Tj
+T*
+(Performance recommendation:) Tj
+T*
+(- FULL: high quality, higher CPU) Tj
+T*
+(- BALANCED: default) Tj
+T*
+(- LIGHT: low-end hardware mode) Tj
+T*
+() Tj
+T*
+(7. Client/Server Side Rules) Tj
+T*
+(- Ground-contact raycasts and IK target generation should run client-side for visual animation.) Tj
+T*
+(- Keep gameplay authority on server and do not attach combat/game logic to visual IK output.) Tj
+T*
+() Tj
+T*
+(8. Myriapod Specific Notes) Tj
+T*
+(- Keep chain cap enabled \(maxMyriapodChains\).) Tj
+T*
+(- Use shorter step distance and lift height.) Tj
+T*
+(- Use LIGHT mode on low-end hardware.) Tj
+T*
+(- Keep naming regular by segment index and side.) Tj
+T*
+() Tj
+T*
+(9. Debug Checklist) Tj
+T*
+(If legs are misdetected:) Tj
+T*
+(- verify clear leg naming) Tj
+T*
+(- ensure 3-bone chain hierarchy exists) Tj
+T*
+(- lower confidence threshold only when naming cannot be changed) Tj
+T*
+(- inspect detectionReport warnings) Tj
+T*
+(- disable problematic profile in config menu) Tj
+T*
+() Tj
+T*
+(10. API Locations) Tj
+T*
+(Core detection:) Tj
+T*
+(- animatruc-proprietary-core/src/main/java/io/hoyatla/animatruc/core/preset/) Tj
+T*
+() Tj
+T*
+(Forge preset/config:) Tj
+T*
+(- animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/preset/) Tj
+T*
+(- animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/config/) Tj
+T*
+(- animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/ground/) Tj
+T*
+() Tj
+T*
+(End of manual.) Tj
+ET
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000000323 00000 n 
+0000002137 00000 n 
+0000002263 00000 n 
+0000004511 00000 n 
+0000004637 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+6482
+%%EOF

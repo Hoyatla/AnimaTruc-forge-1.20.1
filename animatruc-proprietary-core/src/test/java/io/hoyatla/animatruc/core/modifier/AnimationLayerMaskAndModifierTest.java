@@ -12,6 +12,7 @@ import io.hoyatla.animatruc.core.testing.TestClipFactory;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -86,5 +87,63 @@ class AnimationLayerMaskAndModifierTest {
         var pose = animator.update(context, 1f).pose();
         assertNotEquals(Quatf.IDENTITY, pose.transform("upper_arm").rotation());
         assertNotEquals(Quatf.IDENTITY, pose.transform("lower_arm").rotation());
+    }
+
+    @Test
+    void shouldApplyMultiLimbIkTargetsPerChain() {
+        AnimatorInstance animator = new AnimatorInstance(AdaptiveUpdatePolicy.DEFAULT);
+        animator.play(new ClipState(
+                TestClipFactory.multiBoneConstant(
+                        "walk",
+                        Map.of(
+                                "left_upper_leg", Vec3f.ZERO,
+                                "left_lower_leg", Vec3f.ZERO,
+                                "left_foot", Vec3f.ZERO,
+                                "right_upper_leg", Vec3f.ZERO,
+                                "right_lower_leg", Vec3f.ZERO,
+                                "right_foot", Vec3f.ZERO
+                        )
+                ),
+                1f,
+                false
+        ));
+
+        animator.addModifier(new MultiLimbIKModifier(
+                List.of(
+                        IkChainDefinition.builder(
+                                "left_leg",
+                                "left_upper_leg",
+                                "left_lower_leg",
+                                "left_foot",
+                                "ik_left_foot"
+                        ).plane(IkPlane.YZ).lengths(5f, 5f).build(),
+                        IkChainDefinition.builder(
+                                "right_leg",
+                                "right_upper_leg",
+                                "right_lower_leg",
+                                "right_foot",
+                                "ik_right_foot"
+                        ).plane(IkPlane.YZ).lengths(5f, 5f).build()
+                ),
+                false
+        ));
+
+        AnimatorContext context = AnimatorContext.builder()
+                .distanceToCamera(0f)
+                .visible(true)
+                .forceTick(false)
+                .vectorParameters(Map.of(
+                        "ik_left_foot", new Vec3f(0.1f, -3f, 2f),
+                        "ik_right_foot", new Vec3f(-0.1f, -3f, -2f)
+                ))
+                .build();
+
+        var pose = animator.update(context, 1f).pose();
+        Quatf leftRoot = pose.transform("left_upper_leg").rotation();
+        Quatf rightRoot = pose.transform("right_upper_leg").rotation();
+
+        assertNotEquals(Quatf.IDENTITY, leftRoot);
+        assertNotEquals(Quatf.IDENTITY, rightRoot);
+        assertNotEquals(leftRoot, rightRoot);
     }
 }

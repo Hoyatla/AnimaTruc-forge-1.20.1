@@ -1,0 +1,134 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+}
+
+base {
+    archivesName = "compat-animatruc-geckolib-${minecraft_version}"
+}
+
+evaluationDependsOn(":animatruc-proprietary-core")
+evaluationDependsOn(":animatruc-forge")
+
+def proprietaryCoreSourceSets = project(":animatruc-proprietary-core")
+        .extensions
+        .getByType(org.gradle.api.tasks.SourceSetContainer)
+
+def animatrucForgeSourceSets = project(":animatruc-forge")
+        .extensions
+        .getByType(org.gradle.api.tasks.SourceSetContainer)
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "GeckoLib"
+        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+    }
+}
+
+minecraft {
+    mappings channel: 'parchment', version: "${parchment_version}-${minecraft_version}"
+    copyIdeResources = true
+
+    runs {
+        client {
+            workingDirectory project.file('runs/client')
+            mods {
+                animatruc {
+                    source animatrucForgeSourceSets.main
+                    source proprietaryCoreSourceSets.main
+                }
+                animatruc_geckobridge {
+                    source sourceSets.main
+                }
+            }
+        }
+        server {
+            workingDirectory project.file('runs/server')
+            mods {
+                animatruc {
+                    source animatrucForgeSourceSets.main
+                    source proprietaryCoreSourceSets.main
+                }
+                animatruc_geckobridge {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    implementation project(':animatruc-proprietary-core')
+    compileOnly fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${compat_geckolib_mod_version}")
+    runtimeOnly fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${compat_geckolib_mod_version}")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+def compatExpandedProperties = [
+        compat_mod_id            : (findProperty('compat_bridge_mod_id') ?: 'animatruc_geckobridge'),
+        version                  : version,
+        compat_display_name      : (findProperty('compat_bridge_display_name') ?: 'AnimaTruc GeckoLib Bridge'),
+        compat_authors           : mod_authors,
+        compat_license           : (findProperty('compat_mod_license') ?: 'MIT'),
+        compat_description       : (findProperty('compat_mod_description') ?: 'Bridge addon between official GeckoLib assets and AnimaTruc runtime. GeckoLib remains an external required dependency.'),
+        forge_loader_range       : forge_loader_range,
+        forge_version_range      : forge_version_range,
+        minecraft_version_range  : minecraft_version_range,
+        animatruc_required_range : "[${project.version},)",
+        geckolib_required_range  : (findProperty('compat_geckolib_required_range') ?: '[4.7,)')
+]
+
+processResources {
+    inputs.properties compatExpandedProperties
+    filesMatching(['META-INF/mods.toml']) {
+        expand compatExpandedProperties
+    }
+}
+
+jar {
+    from(project.file("LICENSE"))
+    from(project.file("THIRD_PARTY_NOTICES.txt"))
+    manifest {
+        attributes(
+                "Implementation-Title": "AnimaTruc GeckoLib Bridge",
+                "Implementation-Version": version,
+                "Implementation-Vendor": mod_authors
+        )
+    }
+}
+
+javadocJar {
+    from project.file("LICENSE")
+    from project.file("THIRD_PARTY_NOTICES.txt")
+}
+
+sourcesJar {
+    from project.file("LICENSE")
+    from project.file("THIRD_PARTY_NOTICES.txt")
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId base.archivesName.get()
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}

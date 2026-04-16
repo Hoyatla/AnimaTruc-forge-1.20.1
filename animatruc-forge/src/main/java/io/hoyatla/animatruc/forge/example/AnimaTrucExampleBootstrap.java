@@ -5,6 +5,7 @@ import io.hoyatla.animatruc.core.runtime.AdaptiveUpdatePolicy;
 import io.hoyatla.animatruc.core.runtime.AnimatorContext;
 import io.hoyatla.animatruc.core.runtime.AnimatorInstance;
 import io.hoyatla.animatruc.forge.pack.AnimaTrucForgePackLoader;
+import io.hoyatla.animatruc.forge.preset.AutoGroundContactPresetFactory;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +36,17 @@ public final class AnimaTrucExampleBootstrap {
         var firstClip = pack.clipsByName().values().iterator().next();
         AnimatorInstance animator = new AnimatorInstance(AdaptiveUpdatePolicy.DEFAULT);
         animator.play(new ClipState(firstClip, 1f, false));
+
+        AutoGroundContactPresetFactory.detect(pack.skeleton()).ifPresent(autoPreset -> {
+            animator.addModifier(autoPreset.createIkModifier());
+            LOGGER.info(
+                    "AnimaTruc auto preset detected: profile={}, chains={}, confidence={}",
+                    autoPreset.profile(),
+                    autoPreset.ikChains().size(),
+                    autoPreset.detectionReport().averageConfidence()
+            );
+        });
+
         var frame = animator.update(AnimatorContext.visibleNear(), 1f);
 
         LOGGER.info(

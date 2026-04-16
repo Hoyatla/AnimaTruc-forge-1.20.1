@@ -17,4 +17,4 @@ plugins {
 }
 
 rootProject.name = 'AnimaTruc'
-include 'animatruc-proprietary-core', 'animatruc-forge'
+include 'animatruc-proprietary-core', 'animatruc-forge', 'animatruc-geckolib-compat'
