@@ -1,9 +1,13 @@
 package io.hoyatla.animatruc.forge;
 
 import io.hoyatla.animatruc.forge.config.AnimaTrucClientBootstrap;
+import io.hoyatla.animatruc.forge.config.AnimaTrucGameplayConfig;
 import io.hoyatla.animatruc.forge.config.AnimaTrucPresetConfig;
 import io.hoyatla.animatruc.forge.example.AnimaTrucExampleBootstrap;
+import io.hoyatla.animatruc.forge.gameplay.AnimaTrucForgeGameplayEvents;
+import io.hoyatla.animatruc.forge.network.AnimaTrucForgeNetwork;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -17,7 +21,10 @@ public final class AnimaTrucForgeMod {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public AnimaTrucForgeMod() {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, AnimaTrucGameplayConfig.SPEC, "animatruc-gameplay.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, AnimaTrucPresetConfig.SPEC, "animatruc-client.toml");
+        AnimaTrucForgeNetwork.register();
+        MinecraftForge.EVENT_BUS.register(new AnimaTrucForgeGameplayEvents());
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> AnimaTrucClientBootstrap::registerConfigScreen);
 
         LOGGER.info("AnimaTruc Forge runtime initialized");

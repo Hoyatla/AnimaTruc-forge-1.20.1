@@ -16,9 +16,13 @@ AnimaTruc is a proprietary Minecraft animation runtime targeting Forge 1.20.1 wi
 - Layer system with per-bone masks
 - Animation graph runtime with state transitions and fades
 - Procedural modifiers (look-at, breathing, two-bone IK, multi-limb IK)
+- Clean-room gameplay-animation runtime with modular locomotion, emote, perception, feedback, weight, and UI intent systems
 - Built-in runtime profiling
 - Asset import pipeline for `.bbmodel`, `.gltf`, `.animatruc.json`, and `.animatrucpack.json`
 - Unified runtime pack format (`animatruc-pack`) with skeleton + model cubes/meshes + clips
+- Pack metadata for base textures and materials
+- Multi-bone mesh skinning in the authoring/export pipeline
+- CPU skinning utility for Forge-side animated geometry emission
 - Forge ground-contact utilities for per-limb block-surface stepping
 
 ## Blockbench Plugin
@@ -26,10 +30,28 @@ AnimaTruc is a proprietary Minecraft animation runtime targeting Forge 1.20.1 wi
 - Blockbench actions:
   - `Ouvrir .bbmodel pour AnimaTruc`
   - `Importer .gltf pour AnimaTruc`
+  - `Importer AnimaTruc`
   - `Valider pour AnimaTruc`
   - `Previsualiser le pack AnimaTruc`
-  - `Exporter AnimaTruc`
-- Produces `.animatrucpack.json` (model + animations) directly consumable by AnimaTruc importer.
+  - `Exporter AnimaTruc (legacy)`
+  - `Exporter AnimaTruc JSON`
+- Produces `.animatruc.json` or `.animatrucpack` runtime packs directly consumable by AnimaTruc importer.
+- Exports best-effort texture/material metadata from loaded Blockbench textures.
+
+## Blender Addon
+- Location: `blender-addon/animatruc_blender_io.py`
+- Installable archive: `blender-addon/animatruc_blender_io.zip`
+- Supports:
+  - direct export `Blender -> .animatruc.json`
+  - direct import `.animatruc.json -> Blender`
+  - polygon mesh + UV preservation
+  - Blender `Action` export/import as AnimaTruc clips
+  - material/texture metadata export/import
+  - rigid meshes and multi-bone skinned meshes
+- Current scope:
+  - armature-driven authoring for AnimaTruc runtime packs
+  - up to 4 normalized influences per vertex
+  - one runtime material per exported mesh is recommended for Forge delivery
 
 ## Ground Contact IK (Forge)
 - Core IK config:
@@ -93,14 +115,41 @@ if (preset.isPresent()) {
 ```
 
 ## Config Menu
-- Registered in Forge mod list as `AnimaTruc Presets` (client-side screen).
-- Backing config file: `config/animatruc-client.toml`
+- Registered in Forge mod list as `AnimaTruc Runtime` (client-side screen).
+- Backing config files:
+  - `config/animatruc-client.toml`
+  - `config/animatruc-gameplay.toml`
 - Main toggles:
+  - gameplay runtime master switch
+  - locomotion / stamina runtime
+  - emote wheel runtime
+  - sound perception runtime
+  - combat feedback runtime
+  - explosion feedback runtime
+  - weight / fatigue runtime
+  - input UI movement runtime
   - auto detection master switch
   - biped / hexapod / octopod / myriapod enable flags
   - ground raycast enable flag
   - performance mode (`FULL`, `BALANCED`, `LIGHT`)
   - detection confidence preset cycle
+
+## Gameplay Runtime
+- Core package:
+  - `animatruc-proprietary-core/src/main/java/io/hoyatla/animatruc/core/gameplay`
+- Forge integration:
+  - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/gameplay/AnimaTrucForgeGameplayRuntime.java`
+  - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/gameplay/AnimaTrucForgeGameplayEvents.java`
+  - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/network/AnimaTrucFeedbackPacket.java`
+  - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/client/AnimaTrucClientFeedback.java`
+- Clean-room scope:
+  - no copied third-party gameplay classes or assets
+  - modules consume typed AnimaTruc events and emit animation intents, camera feedback, and HUD signals
+  - Forge code handles Minecraft lifecycle, network sync, client-only camera/HUD effects, and server-only event dispatch
+- Current Forge hooks:
+  - explosion feedback from server explosion events to client camera/HUD feedback
+  - periodic inventory weight estimation for fatigue/heavy pose intents
+  - runtime toggles exposed in the AnimaTruc config menu and `animatruc-gameplay.toml`
 
 ## Forge Loader + Example
 - Loader class:
@@ -109,6 +158,8 @@ if (preset.isPresent()) {
   - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/example/AnimaTrucExampleBootstrap.java`
 - Example pack resource:
   - `animatruc-forge/src/main/resources/assets/animatruc/animatrucpacks/example_humanoid.animatrucpack.json`
+- Forge geometry emission utility:
+  - `animatruc-forge/src/main/java/io/hoyatla/animatruc/forge/client/render/AnimaTrucVertexEmitter.java`
 
 ## E2E Test
 - Plugin-exported pack fixture -> runtime import assertions:
@@ -138,3 +189,4 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 ## Developer Manuals
 - Text manual: `docs/AnimaTruc_Developer_Manual.txt`
 - PDF manual: `docs/AnimaTruc_Developer_Manual.pdf`
+- Blender rig guide: `docs/AnimaTruc_Blender_Rig_Guide.md`

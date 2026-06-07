@@ -10,14 +10,20 @@ import java.util.Objects;
 public final class ModelCube {
     private final String name;
     private final String boneName;
+    private final String materialName;
     private final Vec3f from;
     private final Vec3f to;
     private final float inflate;
     private final boolean mirror;
 
     public ModelCube(String name, String boneName, Vec3f from, Vec3f to, float inflate, boolean mirror) {
+        this(name, boneName, null, from, to, inflate, mirror);
+    }
+
+    public ModelCube(String name, String boneName, String materialName, Vec3f from, Vec3f to, float inflate, boolean mirror) {
         this.name = Objects.requireNonNull(name, "name");
         this.boneName = Objects.requireNonNull(boneName, "boneName");
+        this.materialName = materialName;
         this.from = Objects.requireNonNull(from, "from");
         this.to = Objects.requireNonNull(to, "to");
         this.inflate = inflate;
@@ -30,6 +36,10 @@ public final class ModelCube {
 
     public String boneName() {
         return this.boneName;
+    }
+
+    public String materialName() {
+        return this.materialName;
     }
 
     public Vec3f from() {

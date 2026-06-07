@@ -1,3 +1,32 @@
+v1.0.0-proprietary.10 (AnimaTruc)
+- Add clean-room gameplay-animation runtime package:
+  - `io.hoyatla.animatruc.core.gameplay`
+  - typed gameplay events, actor state, runtime state, module registry, animation intents, camera feedback, HUD signals
+- Add built-in gameplay modules inspired by common movement/action mods without copying third-party code:
+  - locomotion and stamina actions
+  - emote intent handling
+  - sound perception / alertness
+  - combat feedback
+  - explosion feedback
+  - inventory weight / fatigue
+  - input/UI movement intents
+- Add Forge gameplay config:
+  - `config/animatruc-gameplay.toml`
+  - feature toggles and runtime tuning values
+- Extend the Forge config screen from preset-only controls to `AnimaTruc Runtime`:
+  - gameplay toggles
+  - existing limb preset toggles
+- Add Forge server/client integration:
+  - explosion event dispatch on server side
+  - feedback packet from server to client
+  - client camera shake/roll and HUD overlay feedback
+  - periodic inventory weight estimation
+- Add gameplay runtime tests for locomotion, perception, explosion feedback, weight handling, and disabled-feature fallback.
+- Keep the implementation proprietary and clean-room:
+  - no copied gameplay classes
+  - no third-party assets
+  - modular runtime intended for future Minecraft-specific adapters.
+
 v1.0.0-proprietary.9 (AnimaTruc)
 - Split licensing for publication:
   - `animatruc-proprietary-core`, `animatruc-forge`, and `animatruc-geckolib-compat` are `All Rights Reserved`

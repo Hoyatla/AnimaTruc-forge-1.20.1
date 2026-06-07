@@ -1,6 +1,8 @@
 package io.hoyatla.animatruc.forge.config;
 
+import io.hoyatla.animatruc.forge.client.AnimaTrucClientFeedback;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModLoadingContext;
 
 /**
@@ -11,6 +13,7 @@ public final class AnimaTrucClientBootstrap {
     }
 
     public static void registerConfigScreen() {
+        MinecraftForge.EVENT_BUS.register(AnimaTrucClientFeedback.class);
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> new AnimaTrucConfigMenuScreen(parent))

@@ -111,4 +111,65 @@ class AnimaTrucJsonImporterTest {
         var headTransform = clip.track("head").sample(19f, clip.lengthTicks(), clip.looping());
         assertNotNull(headTransform.rotation());
     }
+
+    @Test
+    void shouldImportMetadataMaterialsAndSmoothSkinning() {
+        String payload = """
+                {
+                  "format": "animatruc-pack",
+                  "version": 2,
+                  "meta": {
+                    "source": "blender",
+                    "pluginId": "animatruc_blender_io",
+                    "projectName": "hero",
+                    "exportedAt": "2026-04-27T12:00:00Z",
+                    "textures": [
+                      { "name": "hero_diffuse", "path": "assets/example/textures/entity/hero.png", "width": 256, "height": 256 }
+                    ],
+                    "materials": [
+                      { "name": "hero_material", "texture": "hero_diffuse", "renderType": "entityCutoutNoCull" }
+                    ]
+                  },
+                  "skeleton": {
+                    "bones": [
+                      { "name": "root", "pivot": [0, 0, 0], "bindPose": { "translation": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] } },
+                      { "name": "arm", "parent": "root", "pivot": [2, 0, 0], "bindPose": { "translation": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] } }
+                    ]
+                  },
+                  "model": {
+                    "meshes": [
+                      {
+                        "name": "hero_mesh",
+                        "bone": "root",
+                        "material": "hero_material",
+                        "origin": [0, 0, 0],
+                        "vertices": [[0, 0, 0], [2, 0, 0], [2, 1, 0]],
+                        "faces": [{ "indices": [0, 1, 2], "uvs": [[0, 0], [1, 0], [1, 1]] }],
+                        "skin": {
+                          "modelSpaceVertices": true,
+                          "influences": [
+                            [{ "bone": "root", "weight": 1.0 }],
+                            [{ "bone": "root", "weight": 0.25 }, { "bone": "arm", "weight": 0.75 }],
+                            [{ "bone": "arm", "weight": 1.0 }]
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "clips": []
+                }
+                """;
+
+        AnimaTrucJsonImporter importer = new AnimaTrucJsonImporter();
+        var pack = importer.importFromString(payload, ModelImportOptions.DEFAULT);
+
+        assertEquals("hero", pack.metadata().projectName());
+        assertEquals(1, pack.metadata().textures().size());
+        assertEquals("hero_material", pack.metadata().materials().get(0).name());
+        assertEquals(1, pack.geometry().meshes().size());
+        assertEquals("hero_material", pack.geometry().meshes().get(0).materialName());
+        assertTrue(pack.geometry().meshes().get(0).isSkinned());
+        assertEquals(3, pack.geometry().meshes().get(0).skin().influencesByVertex().size());
+        assertEquals("arm", pack.geometry().meshes().get(0).skin().influencesByVertex().get(2).get(0).boneName());
+    }
 }

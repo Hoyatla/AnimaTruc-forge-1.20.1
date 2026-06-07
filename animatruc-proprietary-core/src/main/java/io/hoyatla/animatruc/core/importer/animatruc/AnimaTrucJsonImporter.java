@@ -13,13 +13,18 @@ import io.hoyatla.animatruc.core.animation.Interpolators;
 import io.hoyatla.animatruc.core.animation.Keyframe;
 import io.hoyatla.animatruc.core.animation.Transform;
 import io.hoyatla.animatruc.core.asset.AnimationAssetPack;
+import io.hoyatla.animatruc.core.asset.ModelMeshSkin;
 import io.hoyatla.animatruc.core.asset.ModelBone;
 import io.hoyatla.animatruc.core.asset.ModelCube;
 import io.hoyatla.animatruc.core.asset.ModelGeometry;
+import io.hoyatla.animatruc.core.asset.PackMaterial;
+import io.hoyatla.animatruc.core.asset.PackMetadata;
+import io.hoyatla.animatruc.core.asset.PackTexture;
 import io.hoyatla.animatruc.core.asset.ModelMesh;
 import io.hoyatla.animatruc.core.asset.ModelMeshFace;
 import io.hoyatla.animatruc.core.asset.ModelSkeleton;
 import io.hoyatla.animatruc.core.asset.ModelUv;
+import io.hoyatla.animatruc.core.asset.VertexInfluence;
 import io.hoyatla.animatruc.core.importer.AnimationAssetImporter;
 import io.hoyatla.animatruc.core.importer.ModelImportException;
 import io.hoyatla.animatruc.core.importer.ModelImportOptions;
@@ -43,11 +48,12 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
         ModelImportOptions safeOptions = options == null ? ModelImportOptions.DEFAULT : options;
 
         JsonObject root = parseRoot(payload);
+        PackMetadata metadata = parseMetadata(root);
         ModelSkeleton skeleton = parseSkeleton(root, safeOptions.translationScale());
         ModelGeometry geometry = parseGeometry(root, safeOptions.translationScale());
         Map<String, AnimationClip> clips = parseClips(root, safeOptions);
 
-        return new AnimationAssetPack(skeleton, geometry, clips);
+        return new AnimationAssetPack(metadata, skeleton, geometry, clips);
     }
 
     private static JsonObject parseRoot(String payload) {
@@ -96,6 +102,25 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
         }
 
         return new ModelSkeleton(bones);
+    }
+
+    private static PackMetadata parseMetadata(JsonObject root) {
+        JsonObject metadataObject = getObject(root, "meta");
+
+        if (metadataObject == null)
+            return PackMetadata.EMPTY;
+
+        List<PackTexture> textures = parseTextures(getArray(metadataObject, "textures"));
+        List<PackMaterial> materials = parseMaterials(getArray(metadataObject, "materials"));
+
+        return new PackMetadata(
+                getString(metadataObject, "source", null),
+                getString(metadataObject, "pluginId", null),
+                getString(metadataObject, "projectName", null),
+                getString(metadataObject, "exportedAt", null),
+                textures,
+                materials
+        );
     }
 
     private static Transform parseBindPose(JsonObject bindPoseObject, float translationScale) {
@@ -235,12 +260,13 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
                     continue;
 
                 String name = getString(cubeObject, "name", boneName + "_cube");
+                String material = getString(cubeObject, "material", null);
                 Vec3f from = parseVec3(cubeObject.get("from"), Vec3f.ZERO, translationScale);
                 Vec3f to = parseVec3(cubeObject.get("to"), Vec3f.ZERO, translationScale);
                 float inflate = getFloat(cubeObject, "inflate", 0f) * translationScale;
                 boolean mirror = getBoolean(cubeObject, "mirror", false);
 
-                cubes.add(new ModelCube(name, boneName, from, to, inflate, mirror));
+                cubes.add(new ModelCube(name, boneName, material, from, to, inflate, mirror));
             }
         }
 
@@ -257,12 +283,14 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
                     continue;
 
                 String name = getString(meshObject, "name", boneName + "_mesh");
+                String material = getString(meshObject, "material", null);
                 Vec3f origin = parseVec3(meshObject.get("origin"), Vec3f.ZERO, translationScale);
                 List<Vec3f> vertices = parseVertices(getArray(meshObject, "vertices"), translationScale);
                 List<ModelMeshFace> faces = parseFaces(getArray(meshObject, "faces"));
+                ModelMeshSkin skin = parseSkin(getObject(meshObject, "skin"));
 
                 if (!vertices.isEmpty() && !faces.isEmpty())
-                    meshes.add(new ModelMesh(name, boneName, origin, vertices, faces));
+                    meshes.add(new ModelMesh(name, boneName, material, origin, vertices, faces, skin));
             }
         }
 
@@ -307,6 +335,101 @@ public final class AnimaTrucJsonImporter implements AnimationAssetImporter {
         }
 
         return faces;
+    }
+
+    private static ModelMeshSkin parseSkin(JsonObject skinObject) {
+        if (skinObject == null)
+            return null;
+
+        JsonArray influencesArray = getArray(skinObject, "influences");
+
+        if (influencesArray == null || influencesArray.isEmpty())
+            return null;
+
+        List<List<VertexInfluence>> influencesByVertex = new ArrayList<>(influencesArray.size());
+
+        for (JsonElement vertexElement : influencesArray) {
+            JsonArray vertexArray = vertexElement != null && vertexElement.isJsonArray() ? vertexElement.getAsJsonArray() : null;
+            List<VertexInfluence> influences = new ArrayList<>();
+
+            if (vertexArray != null) {
+                for (JsonElement influenceElement : vertexArray) {
+                    JsonObject influenceObject = asObject(influenceElement);
+
+                    if (influenceObject == null)
+                        continue;
+
+                    String boneName = getString(influenceObject, "bone", null);
+
+                    if (boneName == null || boneName.isBlank())
+                        continue;
+
+                    float weight = getFloat(influenceObject, "weight", 0f);
+
+                    if (weight > 0f)
+                        influences.add(new VertexInfluence(boneName, weight));
+                }
+            }
+
+            influencesByVertex.add(influences);
+        }
+
+        return new ModelMeshSkin(getBoolean(skinObject, "modelSpaceVertices", true), influencesByVertex);
+    }
+
+    private static List<PackTexture> parseTextures(JsonArray texturesArray) {
+        if (texturesArray == null)
+            return List.of();
+
+        List<PackTexture> textures = new ArrayList<>(texturesArray.size());
+
+        for (JsonElement textureElement : texturesArray) {
+            JsonObject textureObject = asObject(textureElement);
+
+            if (textureObject == null)
+                continue;
+
+            String name = getString(textureObject, "name", null);
+
+            if (name == null || name.isBlank())
+                continue;
+
+            textures.add(new PackTexture(
+                    name,
+                    getString(textureObject, "path", null),
+                    (int)getFloat(textureObject, "width", 0f),
+                    (int)getFloat(textureObject, "height", 0f)
+            ));
+        }
+
+        return textures;
+    }
+
+    private static List<PackMaterial> parseMaterials(JsonArray materialsArray) {
+        if (materialsArray == null)
+            return List.of();
+
+        List<PackMaterial> materials = new ArrayList<>(materialsArray.size());
+
+        for (JsonElement materialElement : materialsArray) {
+            JsonObject materialObject = asObject(materialElement);
+
+            if (materialObject == null)
+                continue;
+
+            String name = getString(materialObject, "name", null);
+
+            if (name == null || name.isBlank())
+                continue;
+
+            materials.add(new PackMaterial(
+                    name,
+                    getString(materialObject, "texture", null),
+                    getString(materialObject, "renderType", null)
+            ));
+        }
+
+        return materials;
     }
 
     private static List<Integer> parseFaceIndices(JsonArray indicesArray) {

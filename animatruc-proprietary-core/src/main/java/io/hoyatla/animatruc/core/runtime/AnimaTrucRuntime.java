@@ -2,6 +2,9 @@ package io.hoyatla.animatruc.core.runtime;
 
 import io.hoyatla.animatruc.core.animation.AnimationClip;
 import io.hoyatla.animatruc.core.animation.ClipState;
+import io.hoyatla.animatruc.core.gameplay.GameplayRuntime;
+import io.hoyatla.animatruc.core.gameplay.GameplayRuntimeConfig;
+import io.hoyatla.animatruc.core.gameplay.GameplayRuntimeFactory;
 import io.hoyatla.animatruc.core.graph.AnimationGraph;
 import io.hoyatla.animatruc.core.graph.AnimationGraphRuntime;
 
@@ -20,6 +23,14 @@ public final class AnimaTrucRuntime {
 
     public static AnimationGraphRuntime createGraphRuntime(AnimationGraph graph) {
         return new AnimationGraphRuntime(graph);
+    }
+
+    public static GameplayRuntime createGameplayRuntime() {
+        return GameplayRuntimeFactory.createStandardRuntime();
+    }
+
+    public static GameplayRuntime createGameplayRuntime(GameplayRuntimeConfig config) {
+        return GameplayRuntimeFactory.createStandardRuntime(config);
     }
 
     public static AnimationClip resolveExternalClip(Object context, String clipName) {

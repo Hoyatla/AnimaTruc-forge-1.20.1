@@ -6,6 +6,7 @@ license="${compat_license}"
 modId="${compat_mod_id}"
 version="${version}"
 displayName="${compat_display_name}"
+logoFile="compat-animatruc-geckolib-icon-400.png"
 credits="${compat_authors}"
 authors="${compat_authors}"
 description='''

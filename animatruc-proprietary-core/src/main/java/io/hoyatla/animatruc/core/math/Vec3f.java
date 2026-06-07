@@ -47,8 +47,23 @@ public final class Vec3f {
         return new Vec3f(this.x * other.x, this.y * other.y, this.z * other.z);
     }
 
+    public Vec3f divide(float scalar) {
+        if (scalar == 0f)
+            return ZERO;
+
+        return new Vec3f(this.x / scalar, this.y / scalar, this.z / scalar);
+    }
+
     public float dot(Vec3f other) {
         return this.x * other.x + this.y * other.y + this.z * other.z;
+    }
+
+    public Vec3f cross(Vec3f other) {
+        return new Vec3f(
+                this.y * other.z - this.z * other.y,
+                this.z * other.x - this.x * other.z,
+                this.x * other.y - this.y * other.x
+        );
     }
 
     public float lengthSquared() {

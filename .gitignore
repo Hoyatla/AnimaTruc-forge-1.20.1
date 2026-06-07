@@ -22,6 +22,8 @@ native
 build
 .gradle
 logs
+__pycache__/
+*.pyc
 # other
 eclipse
 run
